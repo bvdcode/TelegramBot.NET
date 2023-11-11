@@ -1,0 +1,26 @@
+name: Publish NuGet package
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '7.0.x'
+
+    - name: Build and publish NuGet package
+      env:
+        NUGET_KEY: ${{ secrets.NUGET_KEY }}
+      run: |
+        dotnet build --configuration Release
+        dotnet pack --configuration Release --output nupkg
+        dotnet nuget push nupkg/*.nupkg --api-key $NUGET_KEY --source https://api.nuget.org/v3/index.json
