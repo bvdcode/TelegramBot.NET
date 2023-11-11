@@ -8,7 +8,6 @@
             string customTelegramApiUrl = "";
 
             IBot bot = new Bot(apiKey, customTelegramApiUrl);
-
         }
     }
 }
