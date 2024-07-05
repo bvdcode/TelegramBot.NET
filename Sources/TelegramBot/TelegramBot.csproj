@@ -17,7 +17,7 @@
 		<PackageIcon>packageIcon.png</PackageIcon>
 		<PackageIconUrl>https://raw.githubusercontent.com/BigMakCode/TelegramBot.NET/main/Sources/TelegramBot/packageIcon.png</PackageIconUrl>
 		<PackageProjectUrl>https://github.com/BigMakCode/TelegramBot.NET</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/BigMakCode/TelegramBot.NET.git</RepositoryUrl>
+		<RepositoryUrl>https://github.com/BigMakCode/TelegramBot.NET</RepositoryUrl>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<RootNamespace>TelegramBot</RootNamespace>
