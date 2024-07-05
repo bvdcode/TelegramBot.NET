@@ -13,7 +13,7 @@ namespace TelegramBot.Controllers
         /// Sends a text message to the sender.
         /// </summary>
         /// <param name="text">Text message.</param>
-        /// <returns>Result of the <see cref="IActionResult"/>
+        /// <returns>Result of the <see cref="IActionResult"/> action.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="text"/> is null or empty.</exception>
         public IActionResult Text(string text)
         {

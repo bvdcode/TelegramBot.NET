@@ -91,9 +91,21 @@ namespace TelegramBot
                             {
                                 if (botCommandAttribute.Command == command)
                                 {
-                                    var result = (IActionResult)method.Invoke(controller, new object[] { update });
-                                    await result.ExecuteResultAsync(new ActionContext(_client, update.Message.Chat.Id));
-                                    return;
+                                    var result = method.Invoke(controller, new object[] { });
+                                    if (result is Task<IActionResult> taskResult)
+                                    {
+                                        await (await taskResult).ExecuteResultAsync(new ActionContext(_client, update.Message.Chat.Id));
+                                        return;
+                                    }
+                                    else if (result is IActionResult actionResult)
+                                    {
+                                        await actionResult.ExecuteResultAsync(new ActionContext(_client, update.Message.Chat.Id));
+                                        return;
+                                    }
+                                    else
+                                    {
+                                        throw new InvalidOperationException("Invalid result type: " + result.GetType().Name);
+                                    }
                                 }
                             }
                         }
