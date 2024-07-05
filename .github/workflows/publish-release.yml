@@ -44,7 +44,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: nupkg
-        path: nupkg
+        path: Sources/TelegramBot/nupkg
         
   release:
     runs-on: ubuntu-latest    
