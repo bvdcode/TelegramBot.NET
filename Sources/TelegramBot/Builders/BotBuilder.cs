@@ -58,7 +58,7 @@ namespace TelegramBot.Builders
             configure(builder);
             if (!string.IsNullOrWhiteSpace(builder.BaseUrl))
             {
-                bool parsed = Uri.TryCreate(builder.BaseUrl, UriKind.Absolute, out Uri? uri);
+                bool parsed = Uri.TryCreate(builder.BaseUrl, UriKind.Absolute, out Uri? _);
                 if (!parsed)
                 {
                     throw new ArgumentException("The base URL is not a valid URI.", nameof(builder.BaseUrl));

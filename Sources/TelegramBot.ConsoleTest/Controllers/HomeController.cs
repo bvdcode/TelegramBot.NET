@@ -9,7 +9,7 @@ namespace TelegramBot.ConsoleTest.Controllers
     public class HomeController(ILogger<HomeController> _logger) : BotControllerBase
     {
         [BotCommand("/start")]
-        public async Task<IActionResult> StartAsync(Update update)
+        public async Task<IActionResult> HandleStartAsync()
         {
             _logger.LogInformation("Start command received.");
             await Task.Delay(1000);
