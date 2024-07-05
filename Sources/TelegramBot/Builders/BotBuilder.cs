@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot;
+using System.Diagnostics;
 
 namespace TelegramBot.Builders
 {
@@ -37,7 +38,10 @@ namespace TelegramBot.Builders
             Services = new ServiceCollection();
             var configuration = new ConfigurationManager();
             configuration.AddCommandLine(args);
-            configuration.AddJsonFile("appsettings.json", optional: true);
+            if (Debugger.IsAttached)
+            {
+                configuration.AddJsonFile("appsettings.json", optional: true);
+            }
             configuration.AddEnvironmentVariables();
             Configuration = configuration;
             Services.AddLogging(builder => builder.AddConsole());
