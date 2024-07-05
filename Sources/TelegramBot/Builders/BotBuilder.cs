@@ -42,7 +42,7 @@ namespace TelegramBot.Builders
             Services.AddLogging(builder => builder.AddConsole());
         }
 
-        private string baseApiUrl = "https://api.telegram.org";
+        private string _baseApiUrl = Constants.DefaultBaseApiUrl;
 
         /// <summary>
         /// Use the Telegram server with the specified base URL.
@@ -61,11 +61,11 @@ namespace TelegramBot.Builders
                 {
                     throw new ArgumentException("The base URL is not a valid URI.", nameof(builder.BaseUrl));
                 }
-                baseApiUrl = builder.BaseUrl;
+                _baseApiUrl = builder.BaseUrl;
             }
             if (builder.UseConfiguration)
             {
-                baseApiUrl = Configuration["CustomTelegramApiUrl"]
+                _baseApiUrl = Configuration["CustomTelegramApiUrl"]
                     ?? throw new ArgumentNullException("CustomTelegramApiUrl", "The custom Telegram API URL is not set in the configuration.");
             }
             return this;

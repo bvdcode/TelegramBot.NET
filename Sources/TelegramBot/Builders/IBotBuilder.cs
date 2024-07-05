@@ -18,10 +18,5 @@ namespace TelegramBot.Builders
         /// A collection of configuration providers for the application to compose. This is useful for adding new configuration sources and providers.
         /// </summary>
         ConfigurationManager Configuration { get; }
-
-        /// <summary>
-        /// A collection of logging providers for the application to compose. This is useful for adding new logging providers.
-        /// </summary>
-        ILoggingBuilder Logging { get; }
     }
 }
