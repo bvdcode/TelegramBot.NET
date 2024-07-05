@@ -12,6 +12,7 @@ namespace TelegramBot.ConsoleTest.Controllers
         public async Task<IActionResult> StartAsync(Update update)
         {
             _logger.LogInformation("Start command received.");
+            await Task.Delay(1000);
             return Text("Hello!");
         }
     }

@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using TelegramBot.Controllers;
 
 namespace TelegramBot
@@ -8,6 +9,7 @@ namespace TelegramBot
     /// </summary>
     public class BotApp : IBot
     {
+        [Obsolete]
         /// <summary>
         /// Maps controllers inherited from <see cref="BotControllerBase"/>.
         /// </summary>
@@ -16,6 +18,7 @@ namespace TelegramBot
 
         }
 
+        [Obsolete]
         /// <summary>
         /// Runs the bot.
         /// </summary>
