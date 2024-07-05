@@ -1,5 +1,6 @@
 ﻿using System;
 using TelegramBot.Abstractions;
+using TelegramBot.ActionResults;
 
 namespace TelegramBot.Controllers
 {
@@ -20,6 +21,7 @@ namespace TelegramBot.Controllers
             {
                 throw new ArgumentNullException(nameof(text));
             }
+            return new TextResult(text);
         }
     }
 }
