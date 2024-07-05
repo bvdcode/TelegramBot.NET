@@ -26,5 +26,5 @@ jobs:
         dotnet build --configuration Release
         dotnet pack --configuration Release --output nupkg
         dotnet nuget add source --username BigMakCode --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/BigMakCode/index.json"
-        dotnet nuget push nupkg/*.nupkg --api-key $GITHUB_TOKEN --source "github"
-        dotnet nuget push nupkg/*.nupkg --api-key $NUGET_KEY --source https://api.nuget.org/v3/index.json
+        dotnet nuget push nupkg/*.nupkg --skip-duplicate --api-key $GITHUB_TOKEN --source "github"
+        dotnet nuget push nupkg/*.nupkg --skip-duplicate --api-key $NUGET_KEY --source https://api.nuget.org/v3/index.json
