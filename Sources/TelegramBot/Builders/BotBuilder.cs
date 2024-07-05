@@ -48,7 +48,7 @@ namespace TelegramBot.Builders
         /// Use the Telegram server with the specified base URL.
         /// </summary>
         /// <param name="configure">The configuration for the Telegram server.</param>
-        /// <returns></returns>
+        /// <returns>This instance of <see cref="IBotBuilder"/>.</returns>
         /// <exception cref="ArgumentException">Thrown when the base URL is not a valid URI.</exception>
         public BotBuilder UseTelegramServer(Action<TelegramServerBuilder> configure)
         {
@@ -71,6 +71,11 @@ namespace TelegramBot.Builders
             return this;
         }
 
+        /// <summary>
+        /// Build the bot.
+        /// </summary>
+        /// <returns>Built bot.</returns>
+        [Obsolete]
         public IBot Build()
         {
             throw new NotImplementedException();
