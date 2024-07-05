@@ -15,15 +15,15 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: '7.0.x'
+        dotnet-version: '8.0.x'
 
     - name: Build and publish NuGet package
       env:
         NUGET_KEY: ${{ secrets.NUGET_KEY }}
-        GITHUB_KEY: ${{ secrets.DEPLOY_GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         cd Sources/TelegramBot
         dotnet build --configuration Release
         dotnet pack --configuration Release --output nupkg
-        dotnet nuget push nupkg/*.nupkg --api-key $GITHUB_KEY --source "github"
+        dotnet nuget push nupkg/*.nupkg --api-key $GITHUB_TOKEN --source "github"
         dotnet nuget push nupkg/*.nupkg --api-key $NUGET_KEY --source https://api.nuget.org/v3/index.json
