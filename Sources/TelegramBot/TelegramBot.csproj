@@ -20,7 +20,7 @@
 		<RepositoryUrl>https://github.com/BigMakCode/TelegramBot.NET.git</RepositoryUrl>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
-		<RootNamespace>TelegramBot.NET</RootNamespace>
+		<RootNamespace>TelegramBot</RootNamespace>
 		<AssemblyName>TelegramBot.NET</AssemblyName>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<IncludeSymbols>true</IncludeSymbols>
@@ -30,8 +30,11 @@
 		<None Include="..\..\LICENSE.md" Pack="true" PackagePath="LICENSE.md" />
 		<None Include="..\..\README.md" Pack="true" PackagePath="\" />
 		<None Include="packageIcon.png" Pack="true" PackagePath="\" />
-		<PackageReference Include="Autofac" Version="7.1.0" />
 		<PackageReference Include="Telegram.Bot" Version="19.0.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
 		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Services\" />
 	</ItemGroup>
 </Project>

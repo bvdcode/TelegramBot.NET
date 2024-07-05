@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace TelegramBot.NET.Events
+namespace TelegramBot.Events
 {
     public class UpdateEventArgs : EventArgs
     {

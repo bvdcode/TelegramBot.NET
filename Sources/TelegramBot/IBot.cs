@@ -8,6 +8,7 @@ namespace TelegramBot
 {
     public interface IBot
     {
-        Task StartAsync(CancellationToken token);
+        void MapControllers();
+        void Run(CancellationToken token = default);
     }
 }
