@@ -20,11 +20,8 @@ jobs:
     - name: Build and publish NuGet package
       env:
         NUGET_KEY: ${{ secrets.NUGET_KEY }}
-        GITHUB_TOKEN: ${{ secrets.DEPLOY_GITHUB_TOKEN }}
       run: |
         cd Sources/TelegramBot
         dotnet build --configuration Release
         dotnet pack --configuration Release --output nupkg
-        dotnet nuget add source --username BigMakCode --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/BigMakCode/index.json"
-        dotnet nuget push nupkg/*.nupkg --skip-duplicate --api-key $GITHUB_TOKEN --source "github"
         dotnet nuget push nupkg/*.nupkg --skip-duplicate --api-key $NUGET_KEY --source https://api.nuget.org/v3/index.json
