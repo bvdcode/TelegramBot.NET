@@ -62,7 +62,6 @@ jobs:
     - name: Push package to GitHub packages 
       if: needs.build.outputs.CommitsSinceVersionSource > 0 #Only release if there has been a commit/version change  
       run: |
-        cd Sources/TelegramBot
         dotnet nuget push nupkg/*.nupkg --api-key ${{ secrets.NUGET_KEY }}  --source "github"
     
     #Create release
