@@ -25,5 +25,5 @@ jobs:
         cd Sources/TelegramBot
         dotnet build --configuration Release
         dotnet pack --configuration Release --output nupkg
-        dotnet nuget push nupkg/*.nupkg --api-key $GITHUB_TOKEN --source https://nuget.pkg.github.com/v3/index.json
+        dotnet nuget push nupkg/*.nupkg --api-key $GITHUB_TOKEN --source https://nuget.pkg.github.com/BigMakCode/index.json
         dotnet nuget push nupkg/*.nupkg --api-key $NUGET_KEY --source https://api.nuget.org/v3/index.json
