@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using TelegramBot.Abstractions;
 
 namespace TelegramBot.Controllers
@@ -10,9 +8,18 @@ namespace TelegramBot.Controllers
     /// </summary>
     public abstract class BotControllerBase
     {
+        /// <summary>
+        /// Sends a text message to the sender.
+        /// </summary>
+        /// <param name="text">Text message.</param>
+        /// <returns>Result of the <see cref="IActionResult"/>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="text"/> is null or empty.</exception>
         public IActionResult Text(string text)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
         }
     }
 }

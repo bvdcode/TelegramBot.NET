@@ -21,11 +21,6 @@ namespace TelegramBot.Builders
         public ConfigurationManager Configuration { get; }
 
         /// <summary>
-        /// A collection of logging providers for the application to compose. This is useful for adding new logging providers.
-        /// </summary>
-        public ILoggingBuilder Logging { get; }
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="BotBuilder"/> class with preconfigured defaults.
         /// </summary>
         /// <returns>The <see cref="BotBuilder"/>.</returns>
@@ -40,21 +35,40 @@ namespace TelegramBot.Builders
         {
             Services = new ServiceCollection();
             var configuration = new ConfigurationManager();
-            configuration.AddEnvironmentVariables(prefix: "ASPNETCORE_");
-
+            configuration.AddCommandLine(args);
+            configuration.AddJsonFile("appsettings.json", optional: true);
+            configuration.AddEnvironmentVariables();
+            Configuration = configuration;
+            Services.AddLogging(builder => builder.AddConsole());
         }
 
-        private IConfigurationRoot CreateConfigurationRoot()
-        {
-            return new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", optional: true)
-                .AddEnvironmentVariables()
-                .Build();
-        }
+        private string baseApiUrl = "https://api.telegram.org";
 
-        public BotBuilder UseTelegramServer(Action<ITelegramServerBuilder> configure)
+        /// <summary>
+        /// Use the Telegram server with the specified base URL.
+        /// </summary>
+        /// <param name="configure">The configuration for the Telegram server.</param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException">Thrown when the base URL is not a valid URI.</exception>
+        public BotBuilder UseTelegramServer(Action<TelegramServerBuilder> configure)
         {
-            throw new NotImplementedException();
+            TelegramServerBuilder builder = new TelegramServerBuilder();
+            configure(builder);
+            if (!string.IsNullOrWhiteSpace(builder.BaseUrl))
+            {
+                bool parsed = Uri.TryCreate(builder.BaseUrl, UriKind.Absolute, out Uri? uri);
+                if (!parsed)
+                {
+                    throw new ArgumentException("The base URL is not a valid URI.", nameof(builder.BaseUrl));
+                }
+                baseApiUrl = builder.BaseUrl;
+            }
+            if (builder.UseConfiguration)
+            {
+                baseApiUrl = Configuration["CustomTelegramApiUrl"]
+                    ?? throw new ArgumentNullException("CustomTelegramApiUrl", "The custom Telegram API URL is not set in the configuration.");
+            }
+            return this;
         }
 
         public IBot Build()
