@@ -1,15 +1,18 @@
-﻿using TelegramBot.Controllers;
+﻿using Telegram.Bot.Types;
+using TelegramBot.Attributes;
+using TelegramBot.Controllers;
+using TelegramBot.Abstractions;
 using Microsoft.Extensions.Logging;
-using Telegram.Bot.Types;
 
 namespace TelegramBot.ConsoleTest.Controllers
 {
     public class HomeController(ILogger<HomeController> _logger) : BotControllerBase
     {
         [BotCommand("/start")]
-        public async Task StartAsync(Update update)
+        public async Task<IActionResult> StartAsync(Update update)
         {
-            await _logger.LogInformation("Start command received.");
+            _logger.LogInformation("Start command received.");
+            return Text("Hello!");
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using TelegramBot.Abstractions;
 
 namespace TelegramBot.Controllers
 {
@@ -9,5 +10,9 @@ namespace TelegramBot.Controllers
     /// </summary>
     public abstract class BotControllerBase
     {
+        public IActionResult Text(string text)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
