@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Telegram.Bot;
 
 namespace TelegramBot.Builders
 {
@@ -43,6 +44,7 @@ namespace TelegramBot.Builders
         }
 
         private string _baseApiUrl = Constants.DefaultBaseApiUrl;
+        private string? _token;
 
         /// <summary>
         /// Use the Telegram server with the specified base URL.
@@ -72,13 +74,40 @@ namespace TelegramBot.Builders
         }
 
         /// <summary>
+        /// Use the API key for the Telegram bot.
+        /// </summary>
+        /// <param name="value">The configuration for the Telegram API key.</param>
+        /// <returns>This instance of <see cref="IBotBuilder"/>.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when the Telegram bot token is not set in the configuration.</exception>
+        public BotBuilder UseApiKey(Action<TelegramApiKeyBuilder> value)
+        {
+            TelegramApiKeyBuilder builder = new TelegramApiKeyBuilder();
+            value(builder);
+            if (!string.IsNullOrWhiteSpace(builder.ApiKey))
+            {
+                _token = builder.ApiKey;
+            }
+            if (builder.UseConfiguration)
+            {
+                _token = Configuration["TelegramBotToken"]
+                    ?? throw new ArgumentNullException("TelegramBotToken", "The Telegram bot token is not set in the configuration.");
+            }
+            return this;
+        }
+
+        /// <summary>
         /// Build the bot.
         /// </summary>
         /// <returns>Built bot.</returns>
-        [Obsolete]
         public IBot Build()
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrWhiteSpace(_token))
+            {
+                throw new ArgumentNullException("TelegramBotToken", "The Telegram bot token is not set.");
+            }
+            TelegramBotClientOptions options = new TelegramBotClientOptions(_token, _baseApiUrl);
+            TelegramBotClient client = new TelegramBotClient(options);
+            return new BotApp(client, Services.BuildServiceProvider());
         }
     }
 }

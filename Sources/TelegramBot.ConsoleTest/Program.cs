@@ -8,6 +8,7 @@ namespace TelegramBot.ConsoleTest
         static void Main(string[] args)
         {
             BotBuilder builder = new BotBuilder(args)
+                .UseApiKey(x => x.FromConfiguration())
                 .UseTelegramServer(x => x.FromConfiguration())
                 .UseTelegramServer(x => x.BaseUrl = "https://api.telegram.org");
             builder.Services.AddSingleton<IEnumerable<string>, List<string>>();
