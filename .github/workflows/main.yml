@@ -20,7 +20,7 @@ jobs:
     - name: Build and publish NuGet package
       env:
         NUGET_KEY: ${{ secrets.NUGET_KEY }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.DEPLOY_GITHUB_TOKEN }}
       run: |
         cd Sources/TelegramBot
         dotnet build --configuration Release
