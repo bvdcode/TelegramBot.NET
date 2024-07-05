@@ -11,7 +11,7 @@ namespace TelegramBot
         /// <summary>
         /// Maps controllers inherited from <see cref="BotControllerBase"/>.
         /// </summary>
-        void MapControllers();
+        IBot MapControllers();
 
         /// <summary>
         /// Runs the bot.
