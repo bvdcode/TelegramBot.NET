@@ -23,5 +23,14 @@ namespace TelegramBot.Controllers
             }
             return new TextResult(text);
         }
+
+        public IActionResult Markdown(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+            return new MarkdownResult(text);
+        }
     }
 }

@@ -13,7 +13,7 @@ namespace TelegramBot.ConsoleTest.Controllers
         {
             _logger.LogInformation("Start command received.");
             await Task.Delay(1000);
-            return Text("Hello!");
+            return Markdown("[inline mention of a user](tg://user?id=123)");
         }
     }
 }
