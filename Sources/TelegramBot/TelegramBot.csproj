@@ -3,7 +3,7 @@
 		<TargetFramework>netstandard2.1</TargetFramework>
 		<Nullable>enable</Nullable>
 		<Authors>Vadim Belov</Authors>
-		<Company>BigmakCode</Company>
+		<Company>bvdcode</Company>
 		<Product>TelegramBot.NET</Product>
 		<Description>Ready-to-use library for convenient development of Telegram bots.</Description>
 		<Copyright>Copyright © Vadim Belov 2024</Copyright>
@@ -14,9 +14,9 @@
 		<PackageTags>telegram</PackageTags>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>packageIcon.png</PackageIcon>
-		<PackageIconUrl>https://raw.githubusercontent.com/BigMakCode/TelegramBot.NET/main/Sources/TelegramBot/packageIcon.png</PackageIconUrl>
-		<PackageProjectUrl>https://github.com/BigMakCode/TelegramBot.NET</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/BigMakCode/TelegramBot.NET</RepositoryUrl>
+		<PackageIconUrl>https://raw.githubusercontent.com/bvdcode/TelegramBot.NET/main/Sources/TelegramBot/packageIcon.png</PackageIconUrl>
+		<PackageProjectUrl>https://github.com/bvdcode/TelegramBot.NET</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/bvdcode/TelegramBot.NET</RepositoryUrl>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<RootNamespace>TelegramBot</RootNamespace>
