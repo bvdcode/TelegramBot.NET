@@ -12,7 +12,7 @@ namespace TelegramBot.Builders
     {
         private int rows = -1;
         private int columns = -1;
-        private readonly List<InlineKeyboardButton> buttons = [];
+        private readonly List<InlineKeyboardButton> buttons = new List<InlineKeyboardButton>();
 
         /// <summary>
         /// Adds a button to the keyboard.
