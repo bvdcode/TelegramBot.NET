@@ -6,7 +6,7 @@ Ready-to-use library for convenient development of Telegram bots.
 # Purposes
 Many people know the ASP.NET Core platform and its convenience for developing web API applications.
 
-I came up with the idea to implement a similar message processing pattern for telegram bots.
+Now you can see the same pattern in Telegram Bot API.
 
 # Getting Started
 Start by importing the library into your project
