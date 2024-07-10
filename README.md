@@ -67,6 +67,32 @@ info: TelegramBot.ConsoleTest.Controllers.HomeController[0]
 
 <p align="right"><a href="#readme-top">back to top</a></p>
 
+## Features
+
+* Dependency Injection - use `Services` property of `BotBuilder` to add services:
+
+```CSharp
+builder.Services.AddDbContext<AppDbContext>(x => x.UseNpgsql(connectionString));
+```
+
+* Send response to client - use `BotControllerBase` methods - `Inline`, `Text`, `MarkDown`:
+
+```CSharp
+[BotCommand("/start")]
+public async Task<IActionResult> HandleStartAsync()
+{
+    string prompt = await _dbContext.Translations.GetTranslationAsync("WelcomePrompt", Language.English);
+    InlineKeyboardMarkup keyboard = new KeyboardBuilder()
+        .WithColumns(2)
+        .AddButton("🇺🇸 English", "/language/en")
+        .AddButton("🇷🇺 Русский", "/language/ru")
+        .AddButton("🇪🇸 Español", "/language/es")
+        .AddButton("🇺🇦 Українська", "/language/uk")
+        .Build();
+    return Inline(prompt, keyboard);
+}
+```
+
 ## Roadmap
 
 - [x] Add command handlers
