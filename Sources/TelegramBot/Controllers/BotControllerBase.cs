@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Linq;
-using Telegram.Bot.Types.ReplyMarkups;
+using Telegram.Bot.Types;
 using TelegramBot.Abstractions;
 using TelegramBot.ActionResults;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace TelegramBot.Controllers
 {
@@ -11,6 +12,16 @@ namespace TelegramBot.Controllers
     /// </summary>
     public abstract class BotControllerBase
     {
+        /// <summary>
+        /// User who sent the update.
+        /// </summary>
+        public User User { get; set; } = null!;
+
+        /// <summary>
+        /// Update received from the user.
+        /// </summary>
+        public Update Update { get; set; } = null!;
+
         /// <summary>
         /// Sends a text message to the sender.
         /// </summary>

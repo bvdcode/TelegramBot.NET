@@ -91,6 +91,8 @@ namespace TelegramBot
                             {
                                 if (botCommandAttribute.Command == command)
                                 {
+                                    controller.Update = update;
+                                    controller.User = update.Message.From;
                                     var result = method.Invoke(controller, new object[] { });
                                     if (result is Task<IActionResult> taskResult)
                                     {
