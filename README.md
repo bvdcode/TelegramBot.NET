@@ -14,7 +14,7 @@ Now you can see the same pattern in Telegram Bot API.
 
 Start by importing the library into your project
 
-`dotnet add package TelegramBot.NET --version 1.0.1`
+`dotnet add package TelegramBot.NET --version 1.0.4`
 
 1. Implement simple handler in your `Program.cs`
 
