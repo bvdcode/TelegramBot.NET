@@ -29,5 +29,23 @@ namespace TelegramBot.Extensions
         {
             return update.InlineQuery != null;
         }
+
+        /// <summary>
+        /// Tries to get the user who sent the update.
+        /// </summary>
+        /// <param name="update">Telegram update.</param>
+        /// <param name="user">The user who sent the update.</param>
+        /// <returns>If the user is not null, returns true; otherwise, false.</returns>
+        public static bool TryGetUser(this Update update, out User user)
+        {
+            if (update.Message != null && update.Message.From != null)
+            {
+                user = update.Message.From;
+                return true;
+            }
+
+            user = null!;
+            return false;
+        }
     }
 }
