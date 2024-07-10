@@ -111,9 +111,11 @@ public async Task<IActionResult> HandleStartAsync()
   - [ ] Image
   - [ ] Video
   - [ ] Delete
+  - [ ] Redirect
 - [ ] Implement language dictionary service
 - [ ] Implement router for inline query
 - [ ] Inject user model in base controller
+- [ ] Add user state service
 
 See the [open issues](https://github.com/BigMakCode/TelegramBot.NET/issues) for a full list of proposed features (and known issues).
 
