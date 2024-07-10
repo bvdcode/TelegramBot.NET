@@ -15,12 +15,12 @@ namespace TelegramBot.Controllers
         /// <summary>
         /// User who sent the update.
         /// </summary>
-        public User User { get; set; } = null!;
+        public User User { get; internal set; } = null!;
 
         /// <summary>
         /// Update received from the user.
         /// </summary>
-        public Update Update { get; set; } = null!;
+        public Update Update { get; internal set; } = null!;
 
         /// <summary>
         /// Sends a text message to the sender.

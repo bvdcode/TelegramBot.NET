@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using TelegramBot.Attributes;
 using TelegramBot.Abstractions;
+using TelegramBot.Extensions;
 
 namespace TelegramBot
 {
@@ -92,7 +93,13 @@ namespace TelegramBot
                                 if (botCommandAttribute.Command == command)
                                 {
                                     controller.Update = update;
-                                    controller.User = update.Message.From;
+                                    bool hasUser = update.TryGetUser(out User user);
+                                    if (!hasUser)
+                                    {
+                                        _logger.LogWarning("User not found in the update {id}.", update.Id);
+                                        return;
+                                    }
+                                    controller.User = user;
                                     var result = method.Invoke(controller, new object[] { });
                                     if (result is Task<IActionResult> taskResult)
                                     {
