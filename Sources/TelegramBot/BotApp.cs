@@ -74,6 +74,7 @@ namespace TelegramBot
             return Task.CompletedTask;
         }
 
+        [Obsolete("Not implemented yet.")]
         private async Task UpdateHandler(ITelegramBotClient client, Update update, CancellationToken token)
         {
             if (update.Message != null && !string.IsNullOrWhiteSpace(update.Message.Text) && update.Message.Text.StartsWith('/'))

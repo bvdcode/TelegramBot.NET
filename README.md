@@ -1,14 +1,17 @@
 <a id="readme-top"></a>
 
 # TelegramBot.NET
-Ready-to-use library for convenient development of Telegram bots.
+
+Ready-to-use **.NET Standard** library for convenient development of Telegram bots.
 
 # Purposes
+
 Many people know the ASP.NET Core platform and its convenience for developing web API applications.
 
 Now you can see the same pattern in Telegram Bot API.
 
 # Getting Started
+
 Start by importing the library into your project
 
 `dotnet add package TelegramBot.NET --version 1.0.1`
@@ -69,13 +72,14 @@ info: TelegramBot.ConsoleTest.Controllers.HomeController[0]
 
 ## Features
 
-* Dependency Injection - use `Services` property of `BotBuilder` to add services:
+- Dependency Injection - use `Services` property of `BotBuilder` to add services:
 
 ```CSharp
 builder.Services.AddDbContext<AppDbContext>(x => x.UseNpgsql(connectionString));
+builder.Services.AddScoped<ISomeHandler, Handler>();
 ```
 
-* Send response to client - use `BotControllerBase` methods - `Inline`, `Text`, `MarkDown`:
+- Send response to client - use `BotControllerBase` methods - `Inline`, `Text`, `MarkDown`:
 
 ```CSharp
 [BotCommand("/start")]
@@ -90,16 +94,26 @@ public async Task<IActionResult> HandleStartAsync()
         .AddButton("🇺🇦 Українська", "/language/uk")
         .Build();
     return Inline(prompt, keyboard);
+    // or
+    return Text("Hello, it's me!");
+    // or
+    return Markdown("Okay, click [this](https://example.com) link");
 }
 ```
 
 ## Roadmap
 
 - [x] Add command handlers
-- [ ] Add command query params
 - [ ] Add response types:
-    - [X] Text
-    - [ ] Inline
+  - [x] Text
+  - [x] Inline
+  - [x] Markdown
+  - [ ] Image
+  - [ ] Video
+  - [ ] Delete
+- [ ] Implement language dictionary service
+- [ ] Implement router for inline query
+- [ ] Inject user model in base controller
 
 See the [open issues](https://github.com/BigMakCode/TelegramBot.NET/issues) for a full list of proposed features (and known issues).
 
