@@ -1,4 +1,7 @@
-﻿using TelegramBot.Builders;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using TelegramBot.Builders;
+using TelegramBot.ConsoleTest.Database;
 
 namespace TelegramBot.ConsoleTest
 {
@@ -9,6 +12,7 @@ namespace TelegramBot.ConsoleTest
             BotBuilder builder = new BotBuilder(args)
                 .UseApiKey(x => x.FromConfiguration());
 
+            builder.Services.AddDbContext<AppDbContext>(x => x.UseSqlite("Data Source=app.db"));
             var app = builder.Build();
             app.MapControllers();
             app.Run();
