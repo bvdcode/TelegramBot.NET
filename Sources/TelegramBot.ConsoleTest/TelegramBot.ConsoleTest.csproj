@@ -11,6 +11,7 @@
 		<Content Include="appsettings.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.7" />
 		<ProjectReference Include="..\TelegramBot\TelegramBot.csproj" />
 	</ItemGroup>
 
