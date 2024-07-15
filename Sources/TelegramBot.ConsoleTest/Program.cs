@@ -1,7 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using TelegramBot.Builders;
+﻿using TelegramBot.Builders;
+using Microsoft.EntityFrameworkCore;
 using TelegramBot.ConsoleTest.Database;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace TelegramBot.ConsoleTest
 {

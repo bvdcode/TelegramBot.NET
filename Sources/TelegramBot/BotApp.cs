@@ -3,14 +3,14 @@ using Telegram.Bot;
 using System.Threading;
 using System.Reflection;
 using Telegram.Bot.Types;
+using TelegramBot.Extensions;
+using TelegramBot.Attributes;
 using System.Threading.Tasks;
 using TelegramBot.Controllers;
+using TelegramBot.Abstractions;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
-using TelegramBot.Attributes;
-using TelegramBot.Abstractions;
-using TelegramBot.Extensions;
 
 namespace TelegramBot
 {
