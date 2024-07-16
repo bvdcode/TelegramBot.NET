@@ -63,7 +63,7 @@ namespace TelegramBot
         public void Run(CancellationToken token = default)
         {
             var botUser = _client.GetMeAsync().Result;
-            _logger.BeginScope("Bot user: {BotUser}", botUser.Username);            
+            _logger.BeginScope("Bot user: {BotUser}", botUser.Username);
             _client.StartReceiving(UpdateHandler, ErrorHandler, cancellationToken: token);
             _logger.LogInformation("Bot started - receiving updates.");
             Task.Delay(-1, token).Wait(token);
@@ -80,10 +80,12 @@ namespace TelegramBot
         {
             if (update.Message != null && !string.IsNullOrWhiteSpace(update.Message.Text) && update.Message.Text.StartsWith('/'))
             {
+                _logger.LogInformation("Received text message: {Text}.", update.Message.Text);
                 await HandleTextMessageAsync(update, update.Message);
             }
             else if (update.CallbackQuery != null && update.CallbackQuery.Data != null)
             {
+                _logger.LogInformation("Received inline query: {Data}.", update.CallbackQuery.Data);
                 await HandleInlineQueryAsync(update, update.CallbackQuery);
             }
             else
@@ -109,7 +111,30 @@ namespace TelegramBot
                     {
                         if (attribute is InlineCommandAttribute botCommandAttribute)
                         {
-                            if (botCommandAttribute.Command == command)
+                            // controller command: /language/{language}
+                            // incoming command: /language/en
+
+                            List<object> args = new List<object>();
+                            string[] controllerCommandParts = botCommandAttribute.Command.Split('/');
+                            string[] incomingCommandParts = command.Split('/');
+                            if (controllerCommandParts.Length != incomingCommandParts.Length)
+                            {
+                                continue;
+                            }
+                            bool match = true;
+                            for (int i = 0; i < controllerCommandParts.Length; i++)
+                            {
+                                if (controllerCommandParts[i] != incomingCommandParts[i] && !controllerCommandParts[i].StartsWith("{") && !controllerCommandParts[i].EndsWith("}"))
+                                {
+                                    match = false;
+                                    break;
+                                }
+                                if (controllerCommandParts[i].StartsWith("{") && controllerCommandParts[i].EndsWith("}"))
+                                {
+                                    args.Add(incomingCommandParts[i]);
+                                }
+                            }
+                            if (match)
                             {
                                 controller.Update = update;
                                 bool hasUser = update.TryGetUser(out User user);
@@ -119,28 +144,15 @@ namespace TelegramBot
                                     return;
                                 }
                                 controller.User = user;
-                                object[] args = new object[] { };
-                                if (command.Contains('{') && command.Contains('}'))
-                                {
-                                    var parts = command.Split('/');
-                                    for (int i = 0; i < parts.Length; i++)
-                                    {
-                                        if (parts[i].StartsWith('{') && parts[i].EndsWith('}'))
-                                        {
-                                            var parameter = parts[i].Trim('{', '}');
-                                            args = args.Append(parameter).ToArray();
-                                        }
-                                    }
-                                }
-                                var result = method.Invoke(controller, args );
+                                var result = method.Invoke(controller, args.ToArray());
                                 if (result is Task<IActionResult> taskResult)
                                 {
-                                    await (await taskResult).ExecuteResultAsync(new ActionContext(_client, update.InlineQuery!.From.Id));
+                                    await (await taskResult).ExecuteResultAsync(new ActionContext(_client, user.Id));
                                     return;
                                 }
                                 else if (result is IActionResult actionResult)
                                 {
-                                    await actionResult.ExecuteResultAsync(new ActionContext(_client, update.InlineQuery!.From.Id));
+                                    await actionResult.ExecuteResultAsync(new ActionContext(_client, user.Id));
                                     return;
                                 }
                                 else
@@ -152,7 +164,7 @@ namespace TelegramBot
                     }
                 }
             }
-            
+
         }
 
         private async Task HandleTextMessageAsync(Update update, Message message)
@@ -182,12 +194,12 @@ namespace TelegramBot
                                 var result = method.Invoke(controller, new object[] { });
                                 if (result is Task<IActionResult> taskResult)
                                 {
-                                    await (await taskResult).ExecuteResultAsync(new ActionContext(_client, update.Message.Chat.Id));
+                                    await (await taskResult).ExecuteResultAsync(new ActionContext(_client, user.Id));
                                     return;
                                 }
                                 else if (result is IActionResult actionResult)
                                 {
-                                    await actionResult.ExecuteResultAsync(new ActionContext(_client, update.Message.Chat.Id));
+                                    await actionResult.ExecuteResultAsync(new ActionContext(_client, user.Id));
                                     return;
                                 }
                                 else

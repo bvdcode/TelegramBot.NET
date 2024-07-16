@@ -43,6 +43,16 @@ namespace TelegramBot.Extensions
                 user = update.Message.From;
                 return true;
             }
+            else if (update.CallbackQuery != null && update.CallbackQuery.From != null)
+            {
+                user = update.CallbackQuery.From;
+                return true;
+            }
+            else if (update.InlineQuery != null && update.InlineQuery.From != null)
+            {
+                user = update.InlineQuery.From;
+                return true;
+            }
 
             user = null!;
             return false;
