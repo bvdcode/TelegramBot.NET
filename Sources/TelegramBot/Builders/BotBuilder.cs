@@ -38,10 +38,7 @@ namespace TelegramBot.Builders
             Services = new ServiceCollection();
             var configuration = new ConfigurationManager();
             configuration.AddCommandLine(args);
-            if (Debugger.IsAttached)
-            {
-                configuration.AddJsonFile("appsettings.json", optional: true);
-            }
+            configuration.AddJsonFile("appsettings.json", optional: true);
             configuration.AddEnvironmentVariables();
             Configuration = configuration;
             Services.AddLogging(builder => builder.AddConsole());
