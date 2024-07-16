@@ -23,7 +23,7 @@ namespace TelegramBot.ConsoleTest.Controllers
         }
 
         [InlineCommand("/language/{lang}")]
-        public async Task<IActionResult> HandleLanguageAsync(string lang)
+        public IActionResult HandleLanguageAsync(string lang)
         {
             _logger.LogInformation("Language command received.");
             return Text($"Language set to {lang}.");
