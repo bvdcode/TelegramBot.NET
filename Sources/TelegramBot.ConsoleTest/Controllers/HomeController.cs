@@ -9,7 +9,7 @@ namespace TelegramBot.ConsoleTest.Controllers
     public class HomeController(ILogger<HomeController> _logger) : BotControllerBase
     {
         [TextCommand("/start")]
-        public async Task<IActionResult> HandleStartAsync()
+        public IActionResult HandleStartAsync()
         {
             _logger.LogInformation("Start command received.");
             var keyboard = new KeyboardBuilder()
