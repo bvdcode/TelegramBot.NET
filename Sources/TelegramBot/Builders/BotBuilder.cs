@@ -93,8 +93,8 @@ namespace TelegramBot.Builders
             }
             if (builder.UseConfiguration)
             {
-                _token = Configuration["TelegramApiKey"]
-                    ?? throw new ArgumentNullException("TelegramApiKey", "The Telegram bot token is not set in the configuration.");
+                _token = Configuration["TelegramBotToken"]
+                    ?? throw new ArgumentNullException("TelegramBotToken", "The Telegram bot token is not set in the configuration.");
             }
             return this;
         }
@@ -107,7 +107,7 @@ namespace TelegramBot.Builders
         {
             if (string.IsNullOrWhiteSpace(_token))
             {
-                throw new ArgumentNullException("TelegramApiKey", "The Telegram bot token is not set.");
+                throw new ArgumentNullException("TelegramBotToken", "The Telegram bot token is not set.");
             }
             TelegramBotClientOptions options = new TelegramBotClientOptions(_token, _baseApiUrl);
             TelegramBotClient client = new TelegramBotClient(options);
