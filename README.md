@@ -56,11 +56,10 @@ or use command line arguments:
 ```CSharp
 public class CommandController(ILogger<CommandController> _logger) : BotControllerBase
 {
-    [BotCommand("/start")]
-    public async Task<IActionResult> HandleStartAsync()
+    [TextCommand("/start")]
+    public IActionResult HandleStartAsync()
     {
         _logger.LogInformation("Start command received.");
-        await Task.Delay(1000);
         return Text("Hello!");
     }
 }
@@ -120,7 +119,7 @@ public async Task<IActionResult> HandleStartAsync()
   - [ ] Delete
   - [ ] Redirect
 - [ ] Implement language dictionary service
-- [ ] Implement router for inline query
+- [x] Implement router for inline query
 - [ ] Inject user model in base controller
 - [ ] Add user state service
 
