@@ -1,7 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 
 namespace TelegramBot.Builders
 {
@@ -32,5 +31,12 @@ namespace TelegramBot.Builders
         /// <param name="configure">The configuration for the Telegram server.</param>
         /// <returns>This instance of <see cref="IBotBuilder"/>.</returns>
         BotBuilder UseTelegramServer(Action<TelegramServerBuilder> configure);
+
+        /// <summary>
+        /// Use custom services for the bot additionally to the built-in services.
+        /// </summary>
+        /// <param name="services">The services to use.</param>
+        /// <returns>This instance of <see cref="IBotBuilder"/>.</returns>
+        BotBuilder UseServices(IServiceCollection services);
     }
 }

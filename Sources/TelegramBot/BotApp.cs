@@ -86,10 +86,10 @@ namespace TelegramBot
                     var methods = controllerType.GetMethods();
                     foreach (var method in methods)
                     {
-                        var attributes = method.GetCustomAttributes(typeof(BotCommandAttribute), false);
+                        var attributes = method.GetCustomAttributes(typeof(TextCommandAttribute), false);
                         foreach (var attribute in attributes)
                         {
-                            if (attribute is BotCommandAttribute botCommandAttribute)
+                            if (attribute is TextCommandAttribute botCommandAttribute)
                             {
                                 if (botCommandAttribute.Command == command)
                                 {

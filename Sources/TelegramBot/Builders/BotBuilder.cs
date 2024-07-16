@@ -113,5 +113,19 @@ namespace TelegramBot.Builders
             TelegramBotClient client = new TelegramBotClient(options);
             return new BotApp(client, Services.BuildServiceProvider());
         }
+
+        /// <summary>
+        /// Use custom services for the bot additionally to the built-in services.
+        /// </summary>
+        /// <param name="services">The services to use.</param>
+        /// <returns>This instance of <see cref="IBotBuilder"/>.</returns>
+        public BotBuilder UseServices(IServiceCollection services)
+        {
+            foreach (var service in services)
+            {
+                Services.Add(service);
+            }
+            return this;
+        }
     }
 }

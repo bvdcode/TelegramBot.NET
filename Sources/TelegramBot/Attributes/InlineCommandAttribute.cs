@@ -3,10 +3,10 @@
 namespace TelegramBot.Attributes
 {
     /// <summary>
-    /// Command attribute for bot controllers.
+    /// Inline command attribute for bot controllers.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method)]
-    public class BotCommandAttribute : Attribute
+    public class InlineCommandAttribute : Attribute
     {
         /// <summary>
         /// Command name.
@@ -14,10 +14,10 @@ namespace TelegramBot.Attributes
         public string Command { get; }
 
         /// <summary>
-        /// Creates a new instance of <see cref="BotCommandAttribute"/>.
+        /// Creates a new instance of <see cref="InlineCommandAttribute"/>.
         /// </summary>
         /// <param name="command">The command name.</param>
-        public BotCommandAttribute(string command)
+        public InlineCommandAttribute(string command)
         {
             Command = command;
         }
