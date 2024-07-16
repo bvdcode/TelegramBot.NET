@@ -57,10 +57,11 @@ namespace TelegramBot.Controllers
         /// </summary>
         /// <param name="prompt">Text prompt.</param>
         /// <param name="keyboard">Keyboard markup.</param>
+        /// <param name="useMarkdown">Whether to use markdown or not.</param>
         /// <returns>Result of the <see cref="IActionResult"/> action.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="prompt"/> or <paramref name="keyboard"/> is null or empty.</exception>
         /// <exception cref="ArgumentException">Thrown when <paramref name="keyboard"/> does not contain any buttons.</exception>
-        public IActionResult Inline(string prompt, InlineKeyboardMarkup keyboard)
+        public IActionResult Inline(string prompt, InlineKeyboardMarkup keyboard, bool useMarkdown = false)
         {
             if (string.IsNullOrWhiteSpace(prompt))
             {
@@ -74,7 +75,7 @@ namespace TelegramBot.Controllers
             {
                 throw new ArgumentException("Keyboard must contain at least one button.", nameof(keyboard));
             }
-            return new InlineResult(prompt, keyboard);
+            return new InlineResult(prompt, keyboard, useMarkdown);
         }
     }
 }

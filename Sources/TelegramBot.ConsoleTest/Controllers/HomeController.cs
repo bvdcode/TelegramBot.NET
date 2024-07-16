@@ -1,9 +1,8 @@
-﻿using Telegram.Bot.Types;
+﻿using TelegramBot.Builders;
 using TelegramBot.Attributes;
 using TelegramBot.Controllers;
 using TelegramBot.Abstractions;
 using Microsoft.Extensions.Logging;
-using TelegramBot.Builders;
 
 namespace TelegramBot.ConsoleTest.Controllers
 {
@@ -20,7 +19,7 @@ namespace TelegramBot.ConsoleTest.Controllers
                 .AddButton("🇪🇸 Español", "/language/es")
                 .AddButton("🇺🇦 Українська", "/language/uk")
                 .Build();
-            return Markdown("[Readme](https://github.com/bvdcode/TelegramBot.NET?tab=readme-ov-file)");
+            return Inline("[Readme](https://github.com/bvdcode/TelegramBot.NET?tab=readme-ov-file)", keyboard, useMarkdown: true);
         }
 
         [InlineCommand("/language/{lang}")]
