@@ -13,7 +13,7 @@
         internal bool UseConfiguration { get; private set; }
 
         /// <summary>
-        /// Use the configuration value TelegramApiKey as the API key.
+        /// Use the configuration value 'TelegramApiKey' as the API key.
         /// </summary>
         public void FromConfiguration()
         {
