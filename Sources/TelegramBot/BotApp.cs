@@ -3,16 +3,13 @@ using Telegram.Bot;
 using System.Threading;
 using System.Reflection;
 using Telegram.Bot.Types;
-using TelegramBot.Extensions;
-using TelegramBot.Attributes;
+using TelegramBot.Handlers;
 using System.Threading.Tasks;
 using TelegramBot.Controllers;
-using TelegramBot.Abstractions;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
-using TelegramBot.Handlers;
 
 namespace TelegramBot
 {
@@ -23,8 +20,8 @@ namespace TelegramBot
     {
         private readonly ILogger<BotApp> _logger;
         private readonly TelegramBotClient _client;
-        private IReadOnlyCollection<Type> _controllers;
         private readonly ServiceProvider _serviceProvider;
+        private IReadOnlyCollection<MethodInfo> _controllerMethods;
 
         /// <summary>
         /// Creates a new instance of <see cref="BotApp"/>.
@@ -34,8 +31,8 @@ namespace TelegramBot
         public BotApp(TelegramBotClient client, ServiceProvider serviceProvider)
         {
             _client = client;
-            _controllers = new List<Type>();
             _serviceProvider = serviceProvider;
+            _controllerMethods = new List<MethodInfo>();
             _logger = serviceProvider.GetRequiredService<ILogger<BotApp>>();
         }
 
@@ -53,7 +50,9 @@ namespace TelegramBot
                     result.Add(type);
                 }
             }
-            _controllers = result;
+            _controllerMethods = result
+                .SelectMany(t => t.GetMethods())
+                .ToList();
             return this;
         }
 
@@ -75,18 +74,17 @@ namespace TelegramBot
             return Task.CompletedTask;
         }
 
-        [Obsolete("Not implemented yet.")]
         private async Task UpdateHandler(ITelegramBotClient client, Update update, CancellationToken token)
         {
             if (update.Message != null && !string.IsNullOrWhiteSpace(update.Message.Text) && update.Message.Text.StartsWith('/'))
             {
                 _logger.LogInformation("Received text message: {Text}.", update.Message.Text);
-                await HandleTextMessageAsync(update, update.Message);
+                await HandleTextMessageAsync(update);
             }
             else if (update.CallbackQuery != null && update.CallbackQuery.Data != null)
             {
                 _logger.LogInformation("Received inline query: {Data}.", update.CallbackQuery.Data);
-                await HandleInlineQueryAsync(update, update.CallbackQuery);
+                await HandleInlineQueryAsync(update);
             }
             else
             {
@@ -94,15 +92,15 @@ namespace TelegramBot
             }
         }
 
-        private async Task HandleInlineQueryAsync(Update update, CallbackQuery inlineQuery)
+        private async Task HandleInlineQueryAsync(Update update)
         {
-            InlineQueryHandler handler = new InlineQueryHandler(_controllers, _serviceProvider);
+            InlineQueryHandler handler = new InlineQueryHandler(_controllerMethods, _serviceProvider);
             await handler.HandleAsync(update);
         }
 
-        private async Task HandleTextMessageAsync(Update update, Message message)
+        private async Task HandleTextMessageAsync(Update update)
         {
-            TextMessageHandler handler = new TextMessageHandler(_controllers, _serviceProvider);
+            TextMessageHandler handler = new TextMessageHandler(_controllerMethods, _serviceProvider);
             await handler.HandleAsync(update);
         }
     }
