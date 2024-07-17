@@ -42,7 +42,7 @@ namespace TelegramBot.Handlers
                 }
                 if (!hasUser)
                 {
-                    return;
+                    throw new InvalidOperationException("User not found in update " + update.Id);
                 }
                 var controller = (BotControllerBase)ActivatorUtilities.CreateInstance(_serviceProvider, method.DeclaringType);
                 controller.Update = update;

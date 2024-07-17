@@ -51,7 +51,7 @@ namespace TelegramBot
                 }
             }
             _controllerMethods = result
-                .SelectMany(t => t.GetMethods())
+                .SelectMany(t => t.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
                 .ToList();
             return this;
         }
