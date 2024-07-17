@@ -12,6 +12,8 @@ namespace TelegramBot.Controllers
     /// </summary>
     public abstract class BotControllerBase
     {
+        internal IKeyValueProvider? KeyValueProvider { get; set; }
+
         /// <summary>
         /// User who sent the update.
         /// </summary>

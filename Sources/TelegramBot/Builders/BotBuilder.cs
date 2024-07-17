@@ -108,6 +108,7 @@ namespace TelegramBot.Builders
             }
             TelegramBotClientOptions options = new TelegramBotClientOptions(_token, _baseApiUrl);
             TelegramBotClient client = new TelegramBotClient(options);
+            Services.AddSingleton<ITelegramBotClient>(client);
             return new BotApp(client, Services.BuildServiceProvider());
         }
 

@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
+using TelegramBot.Handlers;
 
 namespace TelegramBot
 {
@@ -96,121 +97,14 @@ namespace TelegramBot
 
         private async Task HandleInlineQueryAsync(Update update, CallbackQuery inlineQuery)
         {
-            // /language/{language}
-            // /language/{language}/framework/{framework}
-
-            string command = inlineQuery.Data!;
-            foreach (var controllerType in _controllers)
-            {
-                var controller = (BotControllerBase)ActivatorUtilities.CreateInstance(_serviceProvider, controllerType);
-                var methods = controllerType.GetMethods();
-                foreach (var method in methods)
-                {
-                    var attributes = method.GetCustomAttributes(typeof(InlineCommandAttribute), false);
-                    foreach (var attribute in attributes)
-                    {
-                        if (attribute is InlineCommandAttribute botCommandAttribute)
-                        {
-                            // controller command: /language/{language}
-                            // incoming command: /language/en
-
-                            List<object> args = new List<object>();
-                            string[] controllerCommandParts = botCommandAttribute.Command.Split('/');
-                            string[] incomingCommandParts = command.Split('/');
-                            if (controllerCommandParts.Length != incomingCommandParts.Length)
-                            {
-                                continue;
-                            }
-                            bool match = true;
-                            for (int i = 0; i < controllerCommandParts.Length; i++)
-                            {
-                                if (controllerCommandParts[i] != incomingCommandParts[i] && !controllerCommandParts[i].StartsWith("{") && !controllerCommandParts[i].EndsWith("}"))
-                                {
-                                    match = false;
-                                    break;
-                                }
-                                if (controllerCommandParts[i].StartsWith("{") && controllerCommandParts[i].EndsWith("}"))
-                                {
-                                    args.Add(incomingCommandParts[i]);
-                                }
-                            }
-                            if (match)
-                            {
-                                controller.Update = update;
-                                bool hasUser = update.TryGetUser(out User user);
-                                if (!hasUser)
-                                {
-                                    _logger.LogWarning("User not found in the update {id}.", update.Id);
-                                    return;
-                                }
-                                controller.User = user;
-                                var result = method.Invoke(controller, args.ToArray());
-                                if (result is Task<IActionResult> taskResult)
-                                {
-                                    await (await taskResult).ExecuteResultAsync(new ActionContext(_client, user.Id));
-                                    return;
-                                }
-                                else if (result is IActionResult actionResult)
-                                {
-                                    await actionResult.ExecuteResultAsync(new ActionContext(_client, user.Id));
-                                    return;
-                                }
-                                else
-                                {
-                                    throw new InvalidOperationException("Invalid result type: " + result.GetType().Name);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
+            InlineQueryHandler handler = new InlineQueryHandler(_controllers, _serviceProvider);
+            await handler.HandleAsync(update);
         }
 
         private async Task HandleTextMessageAsync(Update update, Message message)
         {
-            string command = message.Text!.Split(' ')[0];
-            foreach (var controllerType in _controllers)
-            {
-                var controller = (BotControllerBase)ActivatorUtilities.CreateInstance(_serviceProvider, controllerType);
-                var methods = controllerType.GetMethods();
-                foreach (var method in methods)
-                {
-                    var attributes = method.GetCustomAttributes(typeof(TextCommandAttribute), false);
-                    foreach (var attribute in attributes)
-                    {
-                        if (attribute is TextCommandAttribute botCommandAttribute)
-                        {
-                            if (botCommandAttribute.Command == command)
-                            {
-                                controller.Update = update;
-                                bool hasUser = update.TryGetUser(out User user);
-                                if (!hasUser)
-                                {
-                                    _logger.LogWarning("User not found in the update {id}.", update.Id);
-                                    return;
-                                }
-                                controller.User = user;
-                                var result = method.Invoke(controller, new object[] { });
-                                if (result is Task<IActionResult> taskResult)
-                                {
-                                    await (await taskResult).ExecuteResultAsync(new ActionContext(_client, user.Id));
-                                    return;
-                                }
-                                else if (result is IActionResult actionResult)
-                                {
-                                    await actionResult.ExecuteResultAsync(new ActionContext(_client, user.Id));
-                                    return;
-                                }
-                                else
-                                {
-                                    throw new InvalidOperationException("Invalid result type: " + result.GetType().Name);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            TextMessageHandler handler = new TextMessageHandler(_controllers, _serviceProvider);
+            await handler.HandleAsync(update);
         }
     }
 }
