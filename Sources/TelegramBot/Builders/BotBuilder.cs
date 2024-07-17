@@ -41,7 +41,11 @@ namespace TelegramBot.Builders
             configuration.AddJsonFile("appsettings.json", optional: true);
             configuration.AddEnvironmentVariables();
             Configuration = configuration;
-            Services.AddLogging(builder => builder.AddConsole());
+            Services.AddLogging(builder =>
+            {
+                builder.AddConsole();
+                builder.AddConfiguration(Configuration.GetSection("Logging"));
+            });
         }
 
         private string _baseApiUrl = Constants.DefaultBaseApiUrl;

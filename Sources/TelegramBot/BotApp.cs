@@ -64,9 +64,8 @@ namespace TelegramBot
         public void Run(CancellationToken token = default)
         {
             var botUser = _client.GetMeAsync().Result;
-            _logger.BeginScope("Bot user: {BotUser}", botUser.Username);
             _client.StartReceiving(UpdateHandler, ErrorHandler, cancellationToken: token);
-            _logger.LogInformation("Bot started - receiving updates.");
+            _logger.LogInformation("Bot '{botUser}' started - receiving updates.", botUser.Username);
             Task.Delay(-1, token).Wait(token);
         }
 
