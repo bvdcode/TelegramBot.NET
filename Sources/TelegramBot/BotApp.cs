@@ -113,6 +113,10 @@ namespace TelegramBot
             BotControllerBase controller = (BotControllerBase)ActivatorUtilities.CreateInstance(_serviceProvider, method.DeclaringType);
             controller.Update = update;
             controller.User = user;
+            if (_serviceProvider.GetService<IKeyValueProvider>() is IKeyValueProvider keyValueProvider)
+            {
+                controller.KeyValueProvider = keyValueProvider;
+            }
             var result = method.Invoke(controller, args);
             if (result is Task<IActionResult> taskResult)
             {

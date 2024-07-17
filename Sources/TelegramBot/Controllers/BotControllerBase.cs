@@ -79,5 +79,72 @@ namespace TelegramBot.Controllers
             }
             return new InlineResult(prompt, keyboard, useMarkdown);
         }
+
+        /// <summary>
+        /// Sets the value of the key in the key-value provider.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        /// <exception cref="InvalidOperationException">Thrown when the key-value provider is not set.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="key"/> is null or empty.</exception>
+        public void SetValue(string key, string? value)
+        {
+            if (KeyValueProvider == null)
+            {
+                throw new InvalidOperationException("Key-value provider is not set. You can inject it in the app service provider.");
+            }
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+            KeyValueProvider.SetValue(key, value);
+        }
+
+        /// <summary>
+        /// Serializes the value to JSON and sets it in the key-value provider.
+        /// </summary>
+        /// <typeparam name="TValue">Type of the value.</typeparam>
+        /// <param name="key">Key to set the value for.</param>
+        /// <param name="value">Value to set.</param>
+        /// <exception cref="InvalidOperationException">Thrown when the key-value provider is not set.</exception>
+        public void SetValue<TValue>(string key, TValue value)
+        {
+            string? json = value == null ? null : System.Text.Json.JsonSerializer.Serialize(value);
+            SetValue(key, json);
+        }
+
+        /// <summary>
+        /// Gets the value of the key from the key-value provider.
+        /// </summary>
+        /// <param name="key">Key to get the value for.</param>
+        /// <returns>Value of the key.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when the key-value provider is not set.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="key"/> is null or empty.</exception>
+        public string GetValue(string key)
+        {
+            if (KeyValueProvider == null)
+            {
+                throw new InvalidOperationException("Key-value provider is not set. You can inject it in the app service provider.");
+            }
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+            return KeyValueProvider.GetValue(key);
+        }
+
+        /// <summary>
+        /// Deserializes the value from JSON and gets it from the key-value provider.
+        /// </summary>
+        /// <typeparam name="TValue">Type of the value.</typeparam>
+        /// <param name="key">Key to get the value for.</param>
+        /// <returns>Value of the key.</returns>
+        /// <exception cref="InvalidOperationException">Thrown when the key-value provider is not set.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="key"/> is null or empty.</exception>
+        public TValue GetValue<TValue>(string key)
+        {
+            string json = GetValue(key);
+            return string.IsNullOrWhiteSpace(json) ? default! : System.Text.Json.JsonSerializer.Deserialize<TValue>(json)!;
+        }
     }
 }
