@@ -1,10 +1,11 @@
-﻿using Telegram.Bot.Types;
-using System.Threading.Tasks;
+﻿using System.Reflection;
+using Telegram.Bot.Types;
 
 namespace TelegramBot.Handlers
 {
     internal interface ITelegramUpdateHandler
     {
-        Task HandleAsync(Update update);
+        MethodInfo GetMethodInfo();
+        object[]? GetArguments();
     }
 }

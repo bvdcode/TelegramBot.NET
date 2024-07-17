@@ -1,85 +1,62 @@
 ﻿using System;
-using Telegram.Bot;
 using System.Reflection;
 using Telegram.Bot.Types;
 using TelegramBot.Attributes;
-using TelegramBot.Extensions;
-using System.Threading.Tasks;
-using TelegramBot.Controllers;
-using TelegramBot.Abstractions;
 using System.Collections.Generic;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace TelegramBot.Handlers
 {
     internal class TextMessageHandler : ITelegramUpdateHandler
     {
-        private readonly ServiceProvider _serviceProvider;
-        private readonly IReadOnlyCollection<MethodInfo> _controllerMethods;
+        private readonly List<object> _args;
+        private readonly MethodInfo _methodInfo;
 
-        public TextMessageHandler(IReadOnlyCollection<MethodInfo> controllerMethods, ServiceProvider serviceProvider)
+        public TextMessageHandler(IReadOnlyCollection<MethodInfo> controllerMethods, Update update)
         {
-            _serviceProvider = serviceProvider;
-            _controllerMethods = controllerMethods;
+            _args = new List<object>();
+            _methodInfo = GetMethodInfo(controllerMethods, update) ?? throw new InvalidOperationException("Method not found for message " + update.Message?.Text);
         }
 
-        public async Task HandleAsync(Update update)
+        private MethodInfo? GetMethodInfo(IReadOnlyCollection<MethodInfo> controllerMethods, Update update)
         {
             if (update.Type != Telegram.Bot.Types.Enums.UpdateType.Message || update.Message == null)
             {
-                return;
+                return null;
             }
-            bool hasUser = update.TryGetUser(out User user);
             var message = update.Message;
-            string command = message.Text!.Split(' ')[0];
+            var parts = message.Text!.Split(' ');
+            string command = parts[0];
 
-            foreach (var method in _controllerMethods)
+            foreach (var method in controllerMethods)
             {
-                var foundAttribute = GetAttribute(method, command);
-                if (foundAttribute == null)
+                var attributes = method.GetCustomAttributes(typeof(TextCommandAttribute), false);
+                foreach (var attribute in attributes)
                 {
-                    continue;
-                }
-                if (!hasUser)
-                {
-                    throw new InvalidOperationException("User not found in update " + update.Id);
-                }
-                var controller = (BotControllerBase)ActivatorUtilities.CreateInstance(_serviceProvider, method.DeclaringType);
-                controller.Update = update;
-                controller.User = user;
-                var result = method.Invoke(controller, new object[] { });
-                ITelegramBotClient client = _serviceProvider.GetRequiredService<ITelegramBotClient>();
-                if (result is Task<IActionResult> taskResult)
-                {
-                    await (await taskResult).ExecuteResultAsync(new ActionContext(client, user.Id));
-                    return;
-                }
-                else if (result is IActionResult actionResult)
-                {
-                    await actionResult.ExecuteResultAsync(new ActionContext(client, user.Id));
-                    return;
-                }
-                else
-                {
-                    throw new InvalidOperationException("Invalid result type: " + result.GetType().Name);
-                }
-            }
-        }
-
-        private TextCommandAttribute? GetAttribute(MethodInfo method, string command)
-        {
-            var attributes = method.GetCustomAttributes(typeof(TextCommandAttribute), false);
-            foreach (var attribute in attributes)
-            {
-                if (attribute is TextCommandAttribute botCommandAttribute)
-                {
-                    if (botCommandAttribute.Command == command)
+                    if (attribute is TextCommandAttribute botCommandAttribute)
                     {
-                        return botCommandAttribute;
+                        if (botCommandAttribute.Command == command)
+                        {
+                            if (parts.Length == 2 && method.GetParameters().Length == 1)
+                            {
+                                _args.Add(parts[1]);
+                            }
+                            return method;
+                        }
                     }
                 }
             }
             return null;
+        }
+
+
+        public object[]? GetArguments()
+        {
+            return _args.Count > 0 ? _args.ToArray() : null;
+        }
+
+        public MethodInfo GetMethodInfo()
+        {
+            return _methodInfo;
         }
     }
 }

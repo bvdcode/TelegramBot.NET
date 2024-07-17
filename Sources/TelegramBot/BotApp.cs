@@ -10,6 +10,9 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
+using TelegramBot.Helpers;
+using TelegramBot.Extensions;
+using TelegramBot.Abstractions;
 
 namespace TelegramBot
 {
@@ -79,12 +82,14 @@ namespace TelegramBot
             if (update.Message != null && !string.IsNullOrWhiteSpace(update.Message.Text) && update.Message.Text.StartsWith('/'))
             {
                 _logger.LogInformation("Received text message: {Text}.", update.Message.Text);
-                await HandleTextMessageAsync(update);
+                var handler = new TextMessageHandler(_controllerMethods, update);
+                await HandleRequestAsync(handler, update);
             }
             else if (update.CallbackQuery != null && update.CallbackQuery.Data != null)
             {
                 _logger.LogInformation("Received inline query: {Data}.", update.CallbackQuery.Data);
-                await HandleInlineQueryAsync(update);
+                var handler = new InlineQueryHandler(_controllerMethods, update);
+                await HandleRequestAsync(handler, update);
             }
             else
             {
@@ -92,16 +97,35 @@ namespace TelegramBot
             }
         }
 
-        private async Task HandleInlineQueryAsync(Update update)
+        private async Task HandleRequestAsync(ITelegramUpdateHandler handler, Update update)
         {
-            InlineQueryHandler handler = new InlineQueryHandler(_controllerMethods, _serviceProvider);
-            await handler.HandleAsync(update);
-        }
-
-        private async Task HandleTextMessageAsync(Update update)
-        {
-            TextMessageHandler handler = new TextMessageHandler(_controllerMethods, _serviceProvider);
-            await handler.HandleAsync(update);
+            bool hasUser = update.TryGetUser(out User user);
+            if (!hasUser)
+            {
+                return;
+            }
+            var args = handler.GetArguments();
+            MethodInfo method = handler.GetMethodInfo();
+            if (method.ReturnType != typeof(Task<IActionResult>) && method.ReturnType != typeof(IActionResult))
+            {
+                throw new InvalidOperationException("Invalid return type: " + method.ReturnType.Name);
+            }
+            BotControllerBase controller = (BotControllerBase)ActivatorUtilities.CreateInstance(_serviceProvider, method.DeclaringType);
+            controller.Update = update;
+            controller.User = user;
+            var result = method.Invoke(controller, args);
+            if (result is Task<IActionResult> taskResult)
+            {
+                await (await taskResult).ExecuteResultAsync(new ActionContext(_client, user.Id));
+            }
+            else if (result is IActionResult actionResult)
+            {
+                await actionResult.ExecuteResultAsync(new ActionContext(_client, user.Id));
+            }
+            else
+            {
+                throw new InvalidOperationException("Invalid result type: " + result.GetType().Name);
+            }
         }
     }
 }
