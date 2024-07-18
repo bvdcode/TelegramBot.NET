@@ -107,6 +107,8 @@ public async Task<IActionResult> HandleStartAsync()
 }
 ```
 
+<p align="right"><a href="#readme-top">back to top</a></p>
+
 ## Roadmap
 
 - [x] Add command handlers
