@@ -1,9 +1,11 @@
 ﻿using System;
+using Telegram.Bot;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Telegram.Bot;
-using System.Diagnostics;
+using System.Linq;
+using TelegramBot.Abstractions;
+using TelegramBot.Providers;
 
 namespace TelegramBot.Builders
 {
@@ -113,6 +115,11 @@ namespace TelegramBot.Builders
             TelegramBotClientOptions options = new TelegramBotClientOptions(_token, _baseApiUrl);
             TelegramBotClient client = new TelegramBotClient(options);
             Services.AddSingleton<ITelegramBotClient>(client);
+            bool hasKeyValueProvider = Services.Any(service => service.ServiceType == typeof(IKeyValueProvider));
+            if (!hasKeyValueProvider)
+            {
+                Services.AddSingleton<IKeyValueProvider, InMemoryKeyValueProvider>();
+            }
             return new BotApp(client, Services.BuildServiceProvider());
         }
 
