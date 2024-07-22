@@ -103,6 +103,20 @@ namespace TelegramBot.Builders
         }
 
         /// <summary>
+        /// Use custom services for the bot additionally to the built-in services.
+        /// </summary>
+        /// <param name="services">The services to use.</param>
+        /// <returns>This instance of <see cref="IBotBuilder"/>.</returns>
+        public BotBuilder UseServices(IServiceCollection services)
+        {
+            foreach (var service in services)
+            {
+                Services.Add(service);
+            }
+            return this;
+        }
+
+        /// <summary>
         /// Build the bot.
         /// </summary>
         /// <returns>Built bot.</returns>
@@ -121,20 +135,6 @@ namespace TelegramBot.Builders
                 Services.AddSingleton<IKeyValueProvider, InMemoryKeyValueProvider>();
             }
             return new BotApp(client, Services.BuildServiceProvider());
-        }
-
-        /// <summary>
-        /// Use custom services for the bot additionally to the built-in services.
-        /// </summary>
-        /// <param name="services">The services to use.</param>
-        /// <returns>This instance of <see cref="IBotBuilder"/>.</returns>
-        public BotBuilder UseServices(IServiceCollection services)
-        {
-            foreach (var service in services)
-            {
-                Services.Add(service);
-            }
-            return this;
         }
     }
 }

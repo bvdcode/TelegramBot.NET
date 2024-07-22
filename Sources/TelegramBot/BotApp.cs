@@ -1,18 +1,17 @@
 ﻿using System;
+using System.Linq;
 using Telegram.Bot;
 using System.Threading;
 using System.Reflection;
 using Telegram.Bot.Types;
 using TelegramBot.Handlers;
 using System.Threading.Tasks;
+using TelegramBot.Extensions;
 using TelegramBot.Controllers;
+using TelegramBot.Abstractions;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
-using System.Linq;
-using TelegramBot.Helpers;
-using TelegramBot.Extensions;
-using TelegramBot.Abstractions;
 
 namespace TelegramBot
 {
@@ -65,9 +64,21 @@ namespace TelegramBot
         /// <param name="token">Cancellation token (optional).</param>
         public void Run(CancellationToken token = default)
         {
-            var botUser = _client.GetMeAsync().Result;
-            _client.StartReceiving(UpdateHandler, ErrorHandler, cancellationToken: token);
-            _logger.LogInformation("Bot '{botUser}' started - receiving updates.", botUser.Username);
+            try
+            {
+                var botUser = _client.GetMeAsync().Result;
+                _client.StartReceiving(UpdateHandler, ErrorHandler, cancellationToken: token);
+                _logger.LogInformation("Bot '{botUser}' started - receiving updates.", botUser.Username);
+            }
+            catch (Exception ex)
+            {
+                if (ex is AggregateException aggregateException)
+                {
+                    ex = aggregateException.InnerException;
+                }
+                _logger.LogError(ex, "Error occurred while starting the bot. Probably the bot token is invalid or the network is not available.");
+                throw ex;
+            }
             Task.Delay(-1, token).Wait(token);
         }
 
