@@ -12,6 +12,7 @@ using TelegramBot.Abstractions;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace TelegramBot
 {
@@ -79,7 +80,24 @@ namespace TelegramBot
                 _logger.LogError(ex, "Error occurred while starting the bot. Probably the bot token is invalid or the network is not available.");
                 throw ex;
             }
-            Task.Delay(-1, token).Wait(token);
+            var hostedServices = _serviceProvider.GetServices<IHostedService>();
+            foreach (var hostedService in hostedServices)
+            {
+                hostedService.StartAsync(token).Wait(token);
+            }
+            try
+            {
+                Task.Delay(-1, token).Wait(token);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation("Bot stopped - no longer receiving updates.");
+            }
+            _logger.LogInformation("Stopping hosted services...");
+            foreach (var hostedService in hostedServices)
+            {
+                hostedService.StopAsync(token).Wait(token);
+            }
         }
 
         private Task ErrorHandler(ITelegramBotClient client, Exception exception, CancellationToken token)
