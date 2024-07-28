@@ -1,9 +1,11 @@
 ﻿using System;
+using Telegram.Bot;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Telegram.Bot;
-using System.Diagnostics;
+using System.Linq;
+using TelegramBot.Abstractions;
+using TelegramBot.Providers;
 
 namespace TelegramBot.Builders
 {
@@ -41,7 +43,11 @@ namespace TelegramBot.Builders
             configuration.AddJsonFile("appsettings.json", optional: true);
             configuration.AddEnvironmentVariables();
             Configuration = configuration;
-            Services.AddLogging(builder => builder.AddConsole());
+            Services.AddLogging(builder =>
+            {
+                builder.AddConsole();
+                builder.AddConfiguration(Configuration.GetSection("Logging"));
+            });
         }
 
         private string _baseApiUrl = Constants.DefaultBaseApiUrl;
@@ -97,21 +103,6 @@ namespace TelegramBot.Builders
         }
 
         /// <summary>
-        /// Build the bot.
-        /// </summary>
-        /// <returns>Built bot.</returns>
-        public IBot Build()
-        {
-            if (string.IsNullOrWhiteSpace(_token))
-            {
-                throw new ArgumentNullException("TelegramBotToken", "The Telegram bot token is not set.");
-            }
-            TelegramBotClientOptions options = new TelegramBotClientOptions(_token, _baseApiUrl);
-            TelegramBotClient client = new TelegramBotClient(options);
-            return new BotApp(client, Services.BuildServiceProvider());
-        }
-
-        /// <summary>
         /// Use custom services for the bot additionally to the built-in services.
         /// </summary>
         /// <param name="services">The services to use.</param>
@@ -123,6 +114,27 @@ namespace TelegramBot.Builders
                 Services.Add(service);
             }
             return this;
+        }
+
+        /// <summary>
+        /// Build the bot.
+        /// </summary>
+        /// <returns>Built bot.</returns>
+        public IBot Build()
+        {
+            if (string.IsNullOrWhiteSpace(_token))
+            {
+                throw new ArgumentNullException("TelegramBotToken", "The Telegram bot token is not set.");
+            }
+            TelegramBotClientOptions options = new TelegramBotClientOptions(_token, _baseApiUrl);
+            TelegramBotClient client = new TelegramBotClient(options);
+            Services.AddSingleton<ITelegramBotClient>(client);
+            bool hasKeyValueProvider = Services.Any(service => service.ServiceType == typeof(IKeyValueProvider));
+            if (!hasKeyValueProvider)
+            {
+                Services.AddSingleton<IKeyValueProvider, InMemoryKeyValueProvider>();
+            }
+            return new BotApp(client, Services.BuildServiceProvider());
         }
     }
 }

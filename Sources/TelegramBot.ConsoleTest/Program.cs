@@ -5,9 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace TelegramBot.ConsoleTest
 {
-    internal class Program
+    public class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             BotBuilder builder = new BotBuilder(args)
                 .UseApiKey(x => x.FromConfiguration());
