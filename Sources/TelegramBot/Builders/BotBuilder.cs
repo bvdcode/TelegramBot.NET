@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Linq;
 using Telegram.Bot;
+using TelegramBot.Services;
+using TelegramBot.Providers;
+using TelegramBot.Abstractions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.Linq;
-using TelegramBot.Abstractions;
-using TelegramBot.Providers;
 
 namespace TelegramBot.Builders
 {
@@ -134,6 +136,7 @@ namespace TelegramBot.Builders
             {
                 Services.AddSingleton<IKeyValueProvider, InMemoryKeyValueProvider>();
             }
+            Services.AddSingleton<IHostApplicationLifetime, HostApplicationLifetime>();
             return new BotApp(client, Services.BuildServiceProvider());
         }
     }

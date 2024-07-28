@@ -94,6 +94,8 @@ namespace TelegramBot
                 _logger.LogInformation("Bot stopped - no longer receiving updates.");
             }
             _logger.LogInformation("Stopping hosted services...");
+            var hostApplicationLifetime = _serviceProvider.GetRequiredService<IHostApplicationLifetime>();
+            hostApplicationLifetime.StopApplication();
             foreach (var hostedService in hostedServices)
             {
                 hostedService.StopAsync(token).Wait(token);
