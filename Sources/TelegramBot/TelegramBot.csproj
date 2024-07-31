@@ -14,7 +14,7 @@
 		<PackageTags>telegram</PackageTags>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageIcon>packageIcon.png</PackageIcon>
-		<PackageIconUrl>https://raw.githubusercontent.com/bvdcode/TelegramBot.NET/main/Sources/TelegramBot/packageIcon.png</PackageIconUrl>
+		<PackageIconUrl>https://media.githubusercontent.com/media/bvdcode/TelegramBot.NET/main/Sources/TelegramBot/packageIcon.png</PackageIconUrl>
 		<PackageProjectUrl>https://github.com/bvdcode/TelegramBot.NET</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/bvdcode/TelegramBot.NET</RepositoryUrl>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
