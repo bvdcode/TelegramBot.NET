@@ -13,8 +13,7 @@
 		<PackageId>TelegramBot.NET</PackageId>
 		<PackageTags>telegram</PackageTags>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageIcon>packageIcon.png</PackageIcon>
-		<PackageIconUrl>https://media.githubusercontent.com/media/bvdcode/TelegramBot.NET/main/Sources/TelegramBot/packageIcon.png</PackageIconUrl>
+		<PackageIcon>icon.png</PackageIcon>
 		<PackageProjectUrl>https://github.com/bvdcode/TelegramBot.NET</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/bvdcode/TelegramBot.NET</RepositoryUrl>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -27,7 +26,7 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<None Include="..\..\README.md" Pack="true" PackagePath="\" />
-		<None Include="packageIcon.png" Pack="true" PackagePath="\" />
+		<None Include="icon.png" Pack="true" PackagePath="\" />
 		<None Include="..\..\LICENSE.md" Pack="true" PackagePath="LICENSE.md" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
 		<PackageReference Include="System.Text.Json" Version="8.0.4" />
