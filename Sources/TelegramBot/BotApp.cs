@@ -20,7 +20,7 @@ namespace TelegramBot
     /// <summary>
     /// Telegram bot application.
     /// </summary>
-    public class BotApp : IBot, IHost
+    public class BotApp : IBot
     {
         private bool _disposed = false;
         private readonly ILogger<BotApp> _logger;
