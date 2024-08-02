@@ -13,29 +13,39 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json.Linq;
 
 namespace TelegramBot
 {
     /// <summary>
     /// Telegram bot application.
     /// </summary>
-    public class BotApp : IBot
+    public class BotApp : IBot, IHost
     {
+        private bool _disposed = false;
         private readonly ILogger<BotApp> _logger;
         private readonly TelegramBotClient _client;
         private readonly ServiceProvider _serviceProvider;
         private IReadOnlyCollection<MethodInfo> _controllerMethods;
+        private readonly CancellationTokenSource _cancellationTokenSource;
+
+        /// <summary>
+        /// Gets the services configured for the program (for example, using <see cref="M:HostBuilder.ConfigureServices(Action&lt;HostBuilderContext,IServiceCollection&gt;)" />).
+        /// </summary>
+        public IServiceProvider Services => _serviceProvider;
 
         /// <summary>
         /// Creates a new instance of <see cref="BotApp"/>.
         /// </summary>
         /// <param name="client">Telegram bot client.</param>
         /// <param name="serviceProvider">Service provider.</param>
-        public BotApp(TelegramBotClient client, ServiceProvider serviceProvider)
+        /// <param name="cancellationTokenSource">Cancellation token source.</param>
+        public BotApp(TelegramBotClient client, ServiceProvider serviceProvider, CancellationTokenSource cancellationTokenSource)
         {
             _client = client;
             _serviceProvider = serviceProvider;
             _controllerMethods = new List<MethodInfo>();
+            _cancellationTokenSource = cancellationTokenSource;
             _logger = serviceProvider.GetRequiredService<ILogger<BotApp>>();
         }
 
@@ -44,6 +54,7 @@ namespace TelegramBot
         /// </summary>
         public IBot MapControllers()
         {
+            CheckDisposed();
             var types = Assembly.GetCallingAssembly().GetTypes();
             List<Type> result = new List<Type>();
             foreach (var type in types)
@@ -62,13 +73,36 @@ namespace TelegramBot
         /// <summary>
         /// Runs the bot.
         /// </summary>
-        /// <param name="token">Cancellation token (optional).</param>
-        public void Run(CancellationToken token = default)
+        /// <param name="cancellationToken">Cancellation token (optional).</param>
+        public void Run(CancellationToken cancellationToken = default)
         {
+            var mergedToken = MergeTokens(cancellationToken);
+            CheckDisposed();
+            StartAsync(mergedToken).Wait();
+            try
+            {
+                Task.Delay(-1, mergedToken).Wait();
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation("Bot stopped - no longer receiving updates.");
+            }
+        }
+
+        /// <summary>
+        /// Starts the <see cref="IHostedService" /> objects configured for the program.
+        /// The application will run until interrupted or until <see cref="M:IHostApplicationLifetime.StopApplication()" /> is called.
+        /// </summary>
+        /// <param name="cancellationToken">Used to abort program start.</param>
+        /// <returns>A <see cref="Task"/> that will be completed when the <see cref="IHost"/> starts.</returns>
+        public async Task StartAsync(CancellationToken cancellationToken = default)
+        {
+            var mergedToken = MergeTokens(cancellationToken);
+            CheckDisposed();
             try
             {
                 var botUser = _client.GetMeAsync().Result;
-                _client.StartReceiving(UpdateHandler, ErrorHandler, cancellationToken: token);
+                _client.StartReceiving(UpdateHandler, ErrorHandler, cancellationToken: mergedToken);
                 _logger.LogInformation("Bot '{botUser}' started - receiving updates.", botUser.Username);
             }
             catch (Exception ex)
@@ -83,33 +117,63 @@ namespace TelegramBot
             var hostedServices = _serviceProvider.GetServices<IHostedService>();
             foreach (var hostedService in hostedServices)
             {
-                hostedService.StartAsync(token).Wait(token);
+                await hostedService.StartAsync(mergedToken);
             }
-            try
-            {
-                Task.Delay(-1, token).Wait(token);
-            }
-            catch (OperationCanceledException)
-            {
-                _logger.LogInformation("Bot stopped - no longer receiving updates.");
-            }
+        }
+
+        /// <summary>
+        /// Attempts to gracefully stop the program.
+        /// </summary>
+        /// <param name="cancellationToken">Used to indicate when stop should no longer be graceful.</param>
+        /// <returns>A <see cref="Task"/> that will be completed when the <see cref="IHost"/> stops.</returns>
+        public async Task StopAsync(CancellationToken cancellationToken = default)
+        {
+            CheckDisposed();
             _logger.LogInformation("Stopping hosted services...");
             var hostApplicationLifetime = _serviceProvider.GetRequiredService<IHostApplicationLifetime>();
             hostApplicationLifetime.StopApplication();
+            var hostedServices = _serviceProvider.GetServices<IHostedService>();
             foreach (var hostedService in hostedServices)
             {
-                hostedService.StopAsync(token).Wait(token);
+                try
+                {
+                    await hostedService.StopAsync(cancellationToken);
+                    _logger.LogInformation("Hosted service '{hostedService}' stopped.", hostedService.GetType().Name);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error occurred while stopping hosted service '{hostedService}'.", hostedService.GetType().Name);
+                }
             }
+            _logger.LogInformation("Stopping bot updates...");
+            _cancellationTokenSource.Cancel();
+        }
+
+        /// <summary>
+        /// Disposes the bot.
+        /// </summary>
+        public void Dispose()
+        {
+            CheckDisposed();
+            GC.SuppressFinalize(this);
+            _disposed = true;
+        }
+
+        private CancellationToken MergeTokens(CancellationToken token)
+        {
+            return CancellationTokenSource.CreateLinkedTokenSource(_cancellationTokenSource.Token, token).Token;
         }
 
         private Task ErrorHandler(ITelegramBotClient client, Exception exception, CancellationToken token)
         {
+            CheckDisposed();
             _logger.LogError(exception, "Error occurred while receiving updates.");
             return Task.CompletedTask;
         }
 
         private async Task UpdateHandler(ITelegramBotClient client, Update update, CancellationToken token)
         {
+            CheckDisposed();
             if (update.Message != null && !string.IsNullOrWhiteSpace(update.Message.Text) && update.Message.Text.StartsWith('/'))
             {
                 _logger.LogInformation("Received text message: {Text}.", update.Message.Text);
@@ -130,6 +194,7 @@ namespace TelegramBot
 
         private async Task HandleRequestAsync(ITelegramUpdateHandler handler, Update update)
         {
+            CheckDisposed();
             bool hasUser = update.TryGetUser(out User user);
             if (!hasUser)
             {
@@ -160,6 +225,14 @@ namespace TelegramBot
             else
             {
                 throw new InvalidOperationException("Invalid result type: " + result.GetType().Name);
+            }
+        }
+
+        private void CheckDisposed()
+        {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(BotApp));
             }
         }
     }
