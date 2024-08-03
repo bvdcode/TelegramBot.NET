@@ -28,5 +28,20 @@ namespace TelegramBot.ConsoleTest.Controllers
             _logger.LogInformation("Language command received.");
             return Text($"Language set to {lang}.");
         }
+
+        [TextCommand("/help")]
+        public IActionResult HandleHelpAsync(int page = 1)
+        {
+            _logger.LogInformation("Help command received.");
+            return Text("Help message: page " + page);
+        }
+
+        [Authorize]
+        [TextCommand("/help")]
+        public IActionResult HandleHelpAsync()
+        {
+            _logger.LogInformation("Help command received.");
+            return Text("Help message.");
+        }
     }
 }
