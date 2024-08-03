@@ -201,10 +201,19 @@ namespace TelegramBot
                 return;
             }
             var args = handler.GetArguments();
-            MethodInfo method = handler.GetMethodInfo();
+            MethodInfo? method = handler.GetMethodInfo();
+            if (method == null)
+            {
+                _logger.LogWarning("Method not found for message: {Text}.", update.Message?.Text);
+                return;
+            }
             if (method.ReturnType != typeof(Task<IActionResult>) && method.ReturnType != typeof(IActionResult))
             {
                 throw new InvalidOperationException("Invalid return type: " + method.ReturnType.Name);
+            }
+            if (method.GetParameters().Length != args?.Length)
+            {
+                throw new InvalidOperationException("Invalid arguments count: " + args?.Length);
             }
             BotControllerBase controller = (BotControllerBase)ActivatorUtilities.CreateInstance(_serviceProvider, method.DeclaringType);
             controller.Update = update;

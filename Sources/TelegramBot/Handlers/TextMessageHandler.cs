@@ -1,6 +1,6 @@
-﻿using System;
-using System.Reflection;
+﻿using System.Reflection;
 using Telegram.Bot.Types;
+using TelegramBot.Helpers;
 using TelegramBot.Attributes;
 using System.Collections.Generic;
 
@@ -9,12 +9,12 @@ namespace TelegramBot.Handlers
     internal class TextMessageHandler : ITelegramUpdateHandler
     {
         private readonly List<object> _args;
-        private readonly MethodInfo _methodInfo;
+        private readonly MethodInfo? _methodInfo;
 
         public TextMessageHandler(IReadOnlyCollection<MethodInfo> controllerMethods, Update update)
         {
             _args = new List<object>();
-            _methodInfo = GetMethodInfo(controllerMethods, update) ?? throw new InvalidOperationException("Method not found for message " + update.Message?.Text);
+            _methodInfo = GetMethodInfo(controllerMethods, update);
         }
 
         private MethodInfo? GetMethodInfo(IReadOnlyCollection<MethodInfo> controllerMethods, Update update)
@@ -26,7 +26,16 @@ namespace TelegramBot.Handlers
             var message = update.Message;
             var parts = message.Text!.Split(' ');
             string command = parts[0];
+            if (!command.StartsWith("/"))
+            {
+                return null;
+            }
+            if (parts.Length > 1)
+            {
+                _args.AddRange(parts[1..]);
+            }
 
+            List<MethodInfo> methods = new List<MethodInfo>();
             foreach (var method in controllerMethods)
             {
                 var attributes = method.GetCustomAttributes(typeof(TextCommandAttribute), false);
@@ -36,14 +45,29 @@ namespace TelegramBot.Handlers
                     {
                         if (botCommandAttribute.Command == command)
                         {
-                            if (parts.Length == 2 && method.GetParameters().Length == 1)
+                            if (_args.Count == method.GetParameters().Length)
                             {
-                                _args.Add(parts[1]);
+                                bool converted = ObjectHelpers.TryConvertParameters(method, _args.ToArray());
+                                if (converted)
+                                {
+                                    methods.Add(method);
+                                }
                             }
-                            return method;
                         }
                     }
                 }
+            }
+            if (methods.Count == 1)
+            {
+                var args = _args.ToArray();
+                ObjectHelpers.TryConvertParameters(methods[0], args);
+                _args.Clear();
+                _args.AddRange(args);
+                return methods[0];
+            }
+            else if (methods.Count > 1)
+            {
+                throw new AmbiguousMatchException("Multiple methods found with the same command and arguments: " + command);
             }
             return null;
         }
@@ -54,7 +78,7 @@ namespace TelegramBot.Handlers
             return _args.Count > 0 ? _args.ToArray() : null;
         }
 
-        public MethodInfo GetMethodInfo()
+        public MethodInfo? GetMethodInfo()
         {
             return _methodInfo;
         }
