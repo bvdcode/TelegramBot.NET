@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Linq;
+using TelegramBot.Attributes;
 
 namespace TelegramBot
 {
@@ -207,15 +208,29 @@ namespace TelegramBot
                 _logger.LogWarning("Method not found for message: {Text}.", update.Message?.Text);
                 return;
             }
+            if (method.GetCustomAttribute<AuthorizeAttribute>() != null 
+                || method.DeclaringType?.GetCustomAttribute<AuthorizeAttribute>() != null)
+            {
+                if (_serviceProvider.GetService<IBotAuthorizationHandler>() is IBotAuthorizationHandler authorizationHandler)
+                {
+                    if (!authorizationHandler.Authorize(user))
+                    {
+                        await authorizationHandler
+                            .HandleUnauthorized(user)
+                            .ExecuteResultAsync(new ActionContext(_client, user.Id));
+                        return;
+                    }
+                }
+            }
             if (method.ReturnType != typeof(Task<IActionResult>) && method.ReturnType != typeof(IActionResult))
             {
                 throw new InvalidOperationException("Invalid return type: " + method.ReturnType.Name);
             }
-            if (method.GetParameters().Length != args?.Length)
+            if (args != null && method.GetParameters().Length != args?.Length)
             {
                 throw new InvalidOperationException("Invalid arguments count: " + args?.Length);
             }
-            BotControllerBase controller = (BotControllerBase)ActivatorUtilities.CreateInstance(_serviceProvider, method.DeclaringType);
+            BotControllerBase controller = (BotControllerBase)ActivatorUtilities.CreateInstance(_serviceProvider, method.DeclaringType!);
             controller.Update = update;
             controller.User = user;
             if (_serviceProvider.GetService<IKeyValueProvider>() is IKeyValueProvider keyValueProvider)
