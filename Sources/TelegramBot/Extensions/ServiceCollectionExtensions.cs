@@ -1,4 +1,5 @@
 ﻿using System;
+using TelegramBot.Attributes;
 using TelegramBot.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -10,6 +11,17 @@ namespace TelegramBot.Extensions
     public static class ServiceCollectionExtensions
     {
         /// <summary>
+        /// Use the authorization predicate for methods and controllers with <see cref="AuthorizeAttribute"/>
+        /// </summary>
+        /// <typeparam name="THandler">The type of the authorization handler.</typeparam>
+        /// <param name="services">The service collection.</param>
+        /// <returns>The modified service collection.</returns>
+        public static IServiceCollection UseAuthorizationHandler<THandler>(this IServiceCollection services) where THandler : class, IBotAuthorizationHandler
+        {
+            return services.AddSingleton<IBotAuthorizationHandler, THandler>();
+        }
+
+        /// <summary>
         /// Registers the specified <see cref="IKeyValueProvider"/> instance as a singleton service in the service collection.
         /// </summary>
         /// <param name="services">The service collection.</param>
@@ -17,8 +29,7 @@ namespace TelegramBot.Extensions
         /// <returns>The modified service collection.</returns>
         public static IServiceCollection UseKeyValueProvider(this IServiceCollection services, IKeyValueProvider provider)
         {
-            services.AddSingleton(provider);
-            return services;
+            return services.AddSingleton(provider);
         }
 
         /// <summary>
@@ -41,8 +52,7 @@ namespace TelegramBot.Extensions
         /// <returns>The modified service collection.</returns>
         public static IServiceCollection UseKeyValueProvider<TImplementation>(this IServiceCollection services) where TImplementation : class, IKeyValueProvider
         {
-            services.AddSingleton<IKeyValueProvider, TImplementation>();
-            return services;
+            return services.AddSingleton<IKeyValueProvider, TImplementation>();
         }
     }
 }

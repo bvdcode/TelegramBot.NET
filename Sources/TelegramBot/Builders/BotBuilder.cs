@@ -1,21 +1,24 @@
 ﻿using System;
 using System.Linq;
 using Telegram.Bot;
+using System.Threading;
+using Telegram.Bot.Types;
 using TelegramBot.Services;
 using TelegramBot.Providers;
+using TelegramBot.Attributes;
 using TelegramBot.Abstractions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.Threading;
+using TelegramBot.Controllers;
 
 namespace TelegramBot.Builders
 {
     /// <summary>
     /// A builder for bot application and services.
     /// </summary>
-    public class BotBuilder : IBotBuilder
+    public class BotBuilder
     {
         /// <summary>
         /// A collection of services for the application to compose. This is useful for adding user provided or framework provided services.
@@ -60,7 +63,7 @@ namespace TelegramBot.Builders
         /// Use the Telegram server with the specified base URL.
         /// </summary>
         /// <param name="configure">The configuration for the Telegram server.</param>
-        /// <returns>This instance of <see cref="IBotBuilder"/>.</returns>
+        /// <returns>This instance of <see cref="BotBuilder"/>.</returns>
         /// <exception cref="ArgumentException">Thrown when the base URL is not a valid URI.</exception>
         public BotBuilder UseTelegramServer(Action<TelegramServerBuilder> configure)
         {
@@ -87,7 +90,7 @@ namespace TelegramBot.Builders
         /// Use the API key for the Telegram bot.
         /// </summary>
         /// <param name="value">The configuration for the Telegram API key.</param>
-        /// <returns>This instance of <see cref="IBotBuilder"/>.</returns>
+        /// <returns>This instance of <see cref="BotBuilder"/>.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the Telegram bot token is not set in the configuration.</exception>
         public BotBuilder UseApiKey(Action<TelegramApiKeyBuilder> value)
         {
@@ -109,7 +112,7 @@ namespace TelegramBot.Builders
         /// Use custom services for the bot additionally to the built-in services.
         /// </summary>
         /// <param name="services">The services to use.</param>
-        /// <returns>This instance of <see cref="IBotBuilder"/>.</returns>
+        /// <returns>This instance of <see cref="BotBuilder"/>.</returns>
         public BotBuilder UseServices(IServiceCollection services)
         {
             foreach (var service in services)

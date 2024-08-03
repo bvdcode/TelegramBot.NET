@@ -81,6 +81,15 @@ namespace TelegramBot.Controllers
         }
 
         /// <summary>
+        /// Do nothing.
+        /// </summary>
+        /// <returns>Result of the <see cref="IActionResult"/> action.</returns>
+        public IActionResult Void()
+        {
+            return new EmptyResult();
+        }
+
+        /// <summary>
         /// Sets the value of the key in the key-value provider.
         /// </summary>
         /// <param name="key"></param>
