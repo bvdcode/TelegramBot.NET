@@ -2,8 +2,9 @@
 [![Nuget](https://img.shields.io/nuget/dt/TelegramBot.NET?color=%239100ff)](https://www.nuget.org/packages/TelegramBot.NET/)
 [![Static Badge](https://img.shields.io/badge/fuget-f88445?logo=readme&logoColor=white)](https://www.fuget.org/packages/TelegramBot.NET)
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/bvdcode/TelegramBot.NET/.github%2Fworkflows%2Fpublish-release.yml)](https://github.com/bvdcode/TelegramBot.NET/actions)
-[![NuGet version (TelegramBot.NET)](https://img.shields.io/nuget/vpre/TelegramBot.NET.svg?style=flat-square&label=latest&color=yellowgreen)](https://www.nuget.org/packages/TelegramBot.NET/)
-[![NuGet version (TelegramBot.NET)](https://img.shields.io/nuget/v/TelegramBot.NET.svg?style=flat-square&label=stable)](https://www.nuget.org/packages/TelegramBot.NET/)
+[![NuGet version (TelegramBot.NET)](https://img.shields.io/nuget/v/TelegramBot.NET.svg?label=stable)](https://www.nuget.org/packages/TelegramBot.NET/)
+[![CodeFactor](https://www.codefactor.io/repository/github/bvdcode/TelegramBot.NET/badge)](https://www.codefactor.io/repository/github/bvdcode/TelegramBot.NET)
+![GitHub repo size](https://img.shields.io/github/repo-size/bvdcode/TelegramBot.NET)
 
 <a id="readme-top"></a>
 
