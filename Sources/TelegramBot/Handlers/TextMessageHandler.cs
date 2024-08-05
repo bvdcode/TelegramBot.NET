@@ -26,7 +26,7 @@ namespace TelegramBot.Handlers
             var message = update.Message;
             var parts = message.Text!.Split(' ');
             string command = parts[0];
-            if (!command.StartsWith("/"))
+            if (!command.StartsWith('/'))
             {
                 return null;
             }

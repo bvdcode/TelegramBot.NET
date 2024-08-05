@@ -41,12 +41,13 @@ namespace TelegramBot.Handlers
                         bool match = true;
                         for (int i = 0; i < controllerCommandParts.Length; i++)
                         {
-                            if (controllerCommandParts[i] != incomingCommandParts[i] && !controllerCommandParts[i].StartsWith("{") && !controllerCommandParts[i].EndsWith("}"))
+                            if (controllerCommandParts[i] != incomingCommandParts[i] && !controllerCommandParts[i].StartsWith('{') 
+                                && !controllerCommandParts[i].EndsWith('}'))
                             {
                                 match = false;
                                 break;
                             }
-                            if (controllerCommandParts[i].StartsWith("{") && controllerCommandParts[i].EndsWith("}"))
+                            if (controllerCommandParts[i].StartsWith('{') && controllerCommandParts[i].EndsWith('}'))
                             {
                                 _args.Add(incomingCommandParts[i]);
                             }
