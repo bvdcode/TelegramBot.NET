@@ -141,7 +141,7 @@ namespace TelegramBot.Builders
                 Services.AddSingleton<IKeyValueProvider, InMemoryKeyValueProvider>();
             }
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-            Services.AddSingleton<IHostApplicationLifetime, HostApplicationLifetime>(x => new HostApplicationLifetime(cancellationTokenSource));
+            Services.AddSingleton<IHostApplicationLifetime, HostApplicationLifetime>(x => new HostApplicationLifetime());
             return new BotApp(client, Services.BuildServiceProvider(), cancellationTokenSource);
         }
     }
