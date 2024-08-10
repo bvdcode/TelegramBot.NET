@@ -141,12 +141,14 @@ namespace TelegramBot
             var hostApplicationLifetime = _serviceProvider.GetRequiredService<IHostApplicationLifetime>();
             hostApplicationLifetime.StopApplication();
             var hostedServices = _serviceProvider.GetServices<IHostedService>();
+            List<Task> tasks = new List<Task>();
             foreach (var hostedService in hostedServices)
             {
                 try
                 {
-                    await hostedService.StopAsync(cancellationToken);
-                    _logger.LogInformation("Hosted service '{hostedService}' stopped.", hostedService.GetType().Name);
+                    var task = hostedService.StopAsync(cancellationToken);
+                    tasks.Add(task);
+                    _logger.LogInformation("Stopping '{hostedService}'...", hostedService.GetType().Name);
                 }
                 catch (Exception ex)
                 {
@@ -155,6 +157,7 @@ namespace TelegramBot
             }
             _logger.LogInformation("Stopping bot updates...");
             _cancellationTokenSource.Cancel();
+            await Task.WhenAll(tasks);
         }
 
         /// <summary>
