@@ -118,22 +118,12 @@ namespace TelegramBot
                 throw ex;
             }
             var hostedServices = _serviceProvider.GetServices<IHostedService>();
-            var hostApplicationLifetime = _serviceProvider.GetRequiredService<HostApplicationLifetime>();
             foreach (var hostedService in hostedServices)
             {
                 await hostedService.StartAsync(mergedToken);
                 _logger.LogInformation("Started '{hostedService}'.", hostedService.GetType().Name);
-                hostApplicationLifetime.ApplicationStopping.Register(() =>
-                {
-                    _logger.LogInformation("Stopping '{hostedService}'...", hostedService.GetType().Name);
-                    hostedService.StopAsync(mergedToken).Wait();
-                });
             }
-            hostApplicationLifetime.ApplicationStopping.Register(() =>
-            {
-                _logger.LogInformation("Application stopping event received.");
-                _cancellationTokenSource.Cancel();
-            });
+            var hostApplicationLifetime = _serviceProvider.GetRequiredService<HostApplicationLifetime>();
             hostApplicationLifetime.NotifyStarted();
         }
 
