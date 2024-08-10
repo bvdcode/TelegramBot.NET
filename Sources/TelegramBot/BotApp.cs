@@ -99,6 +99,7 @@ namespace TelegramBot
         public async Task StartAsync(CancellationToken cancellationToken = default)
         {
             var mergedToken = MergeTokens(cancellationToken);
+            AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
             CheckDisposed();
             try
             {
@@ -120,6 +121,12 @@ namespace TelegramBot
             {
                 await hostedService.StartAsync(mergedToken);
             }
+        }
+
+        private void OnProcessExit(object sender, EventArgs e)
+        {
+            _logger.LogInformation("Process exit event received.");
+            _cancellationTokenSource.Cancel();
         }
 
         /// <summary>
