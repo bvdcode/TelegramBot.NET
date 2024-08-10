@@ -1,26 +1,48 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using Microsoft.Extensions.Hosting;
 
 namespace TelegramBot.Services
 {
-    internal class HostApplicationLifetime : IHostApplicationLifetime
+    internal class HostApplicationLifetime : IHostApplicationLifetime, IDisposable
     {
-        private readonly CancellationTokenSource _cancellationTokenSource;
+        private readonly CancellationTokenSource stopTokenSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource stoppingTokenSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource startTokenSource = new CancellationTokenSource();
 
-        public HostApplicationLifetime(CancellationTokenSource cancellationTokenSource)
-        {
-            _cancellationTokenSource = cancellationTokenSource ?? throw new System.ArgumentNullException(nameof(cancellationTokenSource));
-        }
+        public CancellationToken ApplicationStarted => startTokenSource.Token;
 
-        public CancellationToken ApplicationStarted => _cancellationTokenSource.Token;
+        public CancellationToken ApplicationStopping => stoppingTokenSource.Token;
 
-        public CancellationToken ApplicationStopping => _cancellationTokenSource.Token;
-
-        public CancellationToken ApplicationStopped => _cancellationTokenSource.Token;
+        public CancellationToken ApplicationStopped => stopTokenSource.Token;
 
         public void StopApplication()
         {
-            _cancellationTokenSource.Cancel();
+            stopTokenSource.Cancel();
+            stoppingTokenSource.Cancel();
+            startTokenSource.Cancel();
+        }
+
+        public void NotifyStarted()
+        {
+            startTokenSource.Cancel();
+        }
+
+        public void NotifyStopped()
+        {
+            stopTokenSource.Cancel();
+        }
+
+        public void NotifyStopping()
+        {
+            stoppingTokenSource.Cancel();
+        }
+
+        public void Dispose()
+        {
+            stopTokenSource.Dispose();
+            stoppingTokenSource.Dispose();
+            startTokenSource.Dispose();
         }
     }
 }

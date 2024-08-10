@@ -15,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Linq;
 using TelegramBot.Attributes;
+using TelegramBot.Services;
 
 namespace TelegramBot
 {
@@ -117,10 +118,23 @@ namespace TelegramBot
                 throw ex;
             }
             var hostedServices = _serviceProvider.GetServices<IHostedService>();
+            var hostApplicationLifetime = _serviceProvider.GetRequiredService<HostApplicationLifetime>();
             foreach (var hostedService in hostedServices)
             {
                 await hostedService.StartAsync(mergedToken);
+                _logger.LogInformation("Started '{hostedService}'.", hostedService.GetType().Name);
+                hostApplicationLifetime.ApplicationStopping.Register(() =>
+                {
+                    _logger.LogInformation("Stopping '{hostedService}'...", hostedService.GetType().Name);
+                    hostedService.StopAsync(mergedToken).Wait();
+                });
             }
+            hostApplicationLifetime.ApplicationStopping.Register(() =>
+            {
+                _logger.LogInformation("Application stopping event received.");
+                _cancellationTokenSource.Cancel();
+            });
+            hostApplicationLifetime.NotifyStarted();
         }
 
         private void OnProcessExit(object sender, EventArgs e)
@@ -138,8 +152,8 @@ namespace TelegramBot
         {
             CheckDisposed();
             _logger.LogInformation("Stopping hosted services...");
-            var hostApplicationLifetime = _serviceProvider.GetRequiredService<IHostApplicationLifetime>();
-            hostApplicationLifetime.StopApplication();
+            var hostApplicationLifetime = _serviceProvider.GetRequiredService<HostApplicationLifetime>();
+            hostApplicationLifetime.NotifyStopping();
             var hostedServices = _serviceProvider.GetServices<IHostedService>();
             List<Task> tasks = new List<Task>();
             foreach (var hostedService in hostedServices)
@@ -158,6 +172,8 @@ namespace TelegramBot
             _logger.LogInformation("Stopping bot updates...");
             _cancellationTokenSource.Cancel();
             await Task.WhenAll(tasks);
+            hostApplicationLifetime.NotifyStopped();
+            hostApplicationLifetime.StopApplication();
         }
 
         /// <summary>
