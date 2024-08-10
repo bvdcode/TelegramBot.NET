@@ -140,7 +140,7 @@ namespace TelegramBot.Builders
             {
                 Services.AddSingleton<IKeyValueProvider, InMemoryKeyValueProvider>();
             }
-            Services.AddSingleton<IHostApplicationLifetime, HostApplicationLifetime>(x => new HostApplicationLifetime());
+            Services.AddSingleton<IHostApplicationLifetime, HostApplicationLifetime>();
             return new BotApp(client, Services.BuildServiceProvider());
         }
     }

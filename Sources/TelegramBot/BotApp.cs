@@ -122,7 +122,8 @@ namespace TelegramBot
                 await hostedService.StartAsync(mergedToken);
                 _logger.LogInformation("Started '{hostedService}'.", hostedService.GetType().Name);
             }
-            var hostApplicationLifetime = _serviceProvider.GetRequiredService<HostApplicationLifetime>();
+            var hostApplicationLifetime = _serviceProvider.GetRequiredService<IHostApplicationLifetime>()
+                as HostApplicationLifetime ?? throw new InvalidOperationException("Host application lifetime is not registered.");
             hostApplicationLifetime.NotifyStarted();
         }
 
@@ -141,7 +142,8 @@ namespace TelegramBot
         {
             CheckDisposed();
             _logger.LogInformation("Stopping hosted services...");
-            var hostApplicationLifetime = _serviceProvider.GetRequiredService<HostApplicationLifetime>();
+            var hostApplicationLifetime = _serviceProvider.GetRequiredService<IHostApplicationLifetime>()
+                as HostApplicationLifetime ?? throw new InvalidOperationException("Host application lifetime is not registered.");
             hostApplicationLifetime.NotifyStopping();
             var hostedServices = _serviceProvider.GetServices<IHostedService>();
             List<Task> tasks = new List<Task>();
