@@ -41,13 +41,12 @@ namespace TelegramBot
         /// </summary>
         /// <param name="client">Telegram bot client.</param>
         /// <param name="serviceProvider">Service provider.</param>
-        /// <param name="cancellationTokenSource">Cancellation token source.</param>
-        public BotApp(TelegramBotClient client, ServiceProvider serviceProvider, CancellationTokenSource cancellationTokenSource)
+        public BotApp(TelegramBotClient client, ServiceProvider serviceProvider)
         {
             _client = client;
             _serviceProvider = serviceProvider;
             _controllerMethods = new List<MethodInfo>();
-            _cancellationTokenSource = cancellationTokenSource;
+            _cancellationTokenSource = new CancellationTokenSource();
             _logger = serviceProvider.GetRequiredService<ILogger<BotApp>>();
         }
 
