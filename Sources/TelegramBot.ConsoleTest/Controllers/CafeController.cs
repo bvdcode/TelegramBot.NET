@@ -3,6 +3,7 @@ using TelegramBot.Builders;
 using TelegramBot.Attributes;
 using TelegramBot.Controllers;
 using TelegramBot.Abstractions;
+using System.Text;
 
 namespace TelegramBot.ConsoleTest.Controllers
 {
@@ -73,7 +74,15 @@ namespace TelegramBot.ConsoleTest.Controllers
         [TextCommand("/receipt")]
         public IActionResult HandleReceipt()
         {
-
+            StringBuilder stringBuilder = new();
+            stringBuilder.AppendLine("Date: 2021-09-01");
+            stringBuilder.AppendLine("Time: 12:00");
+            stringBuilder.AppendLine("Order: 2x Vadim's Burger");
+            stringBuilder.AppendLine("Total: $10.00");
+            stringBuilder.AppendLine("Payment method: Cash");
+            stringBuilder.AppendLine("Thank you for your order!");
+            MemoryStream fileStream = new(Encoding.UTF8.GetBytes(stringBuilder.ToString()));
+            return File(fileStream, "receipt.txt");
         }
     }
 }

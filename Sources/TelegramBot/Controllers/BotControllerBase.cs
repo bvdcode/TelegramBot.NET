@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -109,6 +110,17 @@ namespace TelegramBot.Controllers
                 throw new ArgumentNullException(nameof(filePath));
             }
             return new FileResult(filePath);
+        }
+
+        /// <summary>
+        /// Sends a file to the sender.
+        /// </summary>
+        /// <param name="stream">Stream with file content.</param>
+        /// <param name="fileName">File name.</param>
+        /// <param name="disposeStream">Dispose the stream after sending the file.</param>
+        public IActionResult File(Stream stream, string fileName, bool disposeStream = true)
+        {
+            return new FileResult(stream, fileName, disposeStream);
         }
 
         /// <summary>
