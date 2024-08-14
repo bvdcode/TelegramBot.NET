@@ -96,6 +96,12 @@ namespace TelegramBot.Controllers
             return new EmptyResult();
         }
 
+        /// <summary>
+        /// Sends a file to the sender.
+        /// </summary>
+        /// <param name="filePath">Path to the file.</param>
+        /// <returns>Result of the <see cref="IActionResult"/> action.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="filePath"/> is null or empty.</exception>
         public IActionResult File(string filePath)
         {
             if (string.IsNullOrWhiteSpace(filePath))

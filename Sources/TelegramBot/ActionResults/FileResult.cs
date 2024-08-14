@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
-using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using System.Threading.Tasks;
 using TelegramBot.Abstractions;
 
 namespace TelegramBot.ActionResults
@@ -28,11 +28,24 @@ namespace TelegramBot.ActionResults
         }
 
         /// <summary>
+        /// Creates a new instance of <see cref="FileResult"/>.
+        /// </summary>
+        /// <param name="stream">Stream with file content.</param>
+        /// <param name="fileName">File name.</param>
+        /// <param name="disposeStream">Dispose the stream after sending the file.</param>
+        public FileResult(Stream stream, string fileName, bool disposeStream = true)
+        {
+            _fileName = fileName;
+            _fileStream = stream;
+            _disposeStream = disposeStream;
+        }
+
+        /// <summary>
         /// Disposes the file stream if it is applicable.
         /// </summary>
         public void Dispose()
         {
-            if (!_disposed)
+            if (!_disposed && _disposeStream)
             {
                 _fileStream.Dispose();
                 _disposed = true;
