@@ -26,6 +26,7 @@ namespace TelegramBot.Handlers
             }
             var inlineQuery = update.CallbackQuery;
             string command = inlineQuery.Data!;
+            List<MethodInfo> methods = new List<MethodInfo>();
             foreach (var method in controllerMethods)
             {
                 var attributes = method.GetCustomAttributes(typeof(InlineCommandAttribute), false);
@@ -53,19 +54,25 @@ namespace TelegramBot.Handlers
                                 _args.Add(incomingCommandParts[i]);
                             }
                         }
-                        if (match)
+                        if (!match)
                         {
-                            var args = _args.ToArray();
-                            bool converted = ObjectHelpers.TryConvertParameters(method, args);
-                            if (converted)
-                            {
-                                _args.Clear();
-                                _args.AddRange(args);
-                                return method;
-                            }
+                            continue;
                         }
+                        methods.Add(method);
                     }
                 }
+            }
+            if (methods.Count == 1)
+            {
+                var args = _args.ToArray();
+                ObjectHelpers.TryConvertParameters(methods[0], args);
+                _args.Clear();
+                _args.AddRange(args);
+                return methods[0];
+            }
+            else if (methods.Count > 1)
+            {
+                throw new AmbiguousMatchException("Multiple methods found with the same command and arguments: " + command);
             }
             return null;
         }
