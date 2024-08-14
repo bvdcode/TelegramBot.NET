@@ -96,6 +96,34 @@ namespace TelegramBot.Controllers
             return new EmptyResult();
         }
 
+        public IActionResult File(string filePath)
+        {
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+            return new FileResult(filePath);
+        }
+
+        /// <summary>
+        /// Deletes message from the current update, or does nothing if the message identifier is not found.
+        /// <br/>
+        /// Note: this method does not throw exceptions when the message ID is not found, access is denied, message is already deleted etc.
+        /// </summary>
+        public void Delete()
+        {
+            bool hasMessageId = Update.TryGetMessageId(out int messageId);
+            if (!hasMessageId)
+            {
+                return;
+            }
+            try
+            {
+                Client.DeleteMessageAsync(User.Id, messageId);
+            }
+            catch (Exception) { }
+        }
+
         /// <summary>
         /// Sets the value of the key in the key-value provider.
         /// </summary>
@@ -161,25 +189,6 @@ namespace TelegramBot.Controllers
         {
             string json = GetValue(key);
             return string.IsNullOrWhiteSpace(json) ? default! : System.Text.Json.JsonSerializer.Deserialize<TValue>(json)!;
-        }
-
-        /// <summary>
-        /// Deletes message from the current update, or does nothing if the message identifier is not found.
-        /// <br/>
-        /// Note: this method does not throw exceptions when the message ID is not found, access is denied, message is already deleted etc.
-        /// </summary>
-        public void Delete()
-        {
-            bool hasMessageId = Update.TryGetMessageId(out int messageId);
-            if (!hasMessageId)
-            {
-                return;
-            }
-            try
-            {
-                Client.DeleteMessageAsync(User.Id, messageId);
-            }
-            catch (Exception) { }
         }
     }
 }

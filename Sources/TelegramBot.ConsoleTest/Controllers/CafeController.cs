@@ -69,5 +69,11 @@ namespace TelegramBot.ConsoleTest.Controllers
             await telegramBotClient.SendTextMessageAsync(customerId, text);
             return Text(text);
         }
+
+        [TextCommand("/receipt")]
+        public IActionResult HandleReceipt()
+        {
+
+        }
     }
 }

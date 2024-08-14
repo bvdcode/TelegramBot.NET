@@ -16,6 +16,7 @@ using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Linq;
 using TelegramBot.Attributes;
 using TelegramBot.Services;
+using TelegramBot.Builders;
 
 namespace TelegramBot
 {
@@ -122,8 +123,21 @@ namespace TelegramBot
                 await hostedService.StartAsync(mergedToken);
                 _logger.LogInformation("Started '{hostedService}'.", hostedService.GetType().Name);
             }
-            var hostApplicationLifetime = _serviceProvider.GetRequiredService<IHostApplicationLifetime>()
+            var hostApplicationLifetime = _serviceProvider.GetService<IHostApplicationLifetime>()
                 as HostApplicationLifetime ?? throw new InvalidOperationException("Host application lifetime is not registered.");
+            var commandRegistrationBuilders = _serviceProvider.GetServices<CommandRegistrationBuilder>();
+            if (commandRegistrationBuilders != null && commandRegistrationBuilders.Any())
+            {
+                foreach (var builder in commandRegistrationBuilders)
+                {
+                    var commands = builder.Build();
+                    await _client.SetMyCommandsAsync(commands,
+                            languageCode: builder.Language,
+                            cancellationToken: mergedToken);
+                    _logger.LogInformation("Registered {count} commands for language '{language}'.",
+                        commands.Count(), builder.Language);
+                }
+            }
             hostApplicationLifetime.NotifyStarted();
         }
 
@@ -225,7 +239,7 @@ namespace TelegramBot
                 _logger.LogWarning("Method not found for message: {Text}.", update.Message?.Text);
                 return;
             }
-            if (method.GetCustomAttribute<AuthorizeAttribute>() != null 
+            if (method.GetCustomAttribute<AuthorizeAttribute>() != null
                 || method.DeclaringType?.GetCustomAttribute<AuthorizeAttribute>() != null)
             {
                 if (_serviceProvider.GetService<IBotAuthorizationHandler>() is IBotAuthorizationHandler authorizationHandler)
@@ -268,6 +282,25 @@ namespace TelegramBot
             {
                 throw new InvalidOperationException("Invalid result type: " + result.GetType().Name);
             }
+
+            if (controller is IAsyncDisposable asyncDisposable)
+            {
+                await asyncDisposable.DisposeAsync();
+            }
+            else if (controller is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+
+            if (result is IAsyncDisposable asyncDisposableResult)
+            {
+                await asyncDisposableResult.DisposeAsync();
+            }
+            else if (result is IDisposable disposableResult)
+            {
+                disposableResult.Dispose();
+            }
+
         }
 
         private void CheckDisposed()

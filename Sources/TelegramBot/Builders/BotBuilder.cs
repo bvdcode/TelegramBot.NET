@@ -12,6 +12,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TelegramBot.Controllers;
+using System.Collections.Generic;
 
 namespace TelegramBot.Builders
 {
@@ -119,6 +120,20 @@ namespace TelegramBot.Builders
             {
                 Services.Add(service);
             }
+            return this;
+        }
+
+        /// <summary>
+        /// Register commands for the bot.
+        /// </summary>
+        /// <param name="setup">The setup for the command registration.</param>
+        /// <param name="language">The language for the commands, default is English.</param>
+        /// <returns>This instance of <see cref="BotBuilder"/>.</returns>
+        public BotBuilder RegisterCommands(Action<CommandRegistrationBuilder> setup, string language = "en")
+        {
+            CommandRegistrationBuilder builder = new CommandRegistrationBuilder(language);
+            setup(builder);
+            Services.AddSingleton(builder);
             return this;
         }
 

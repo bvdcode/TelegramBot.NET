@@ -9,10 +9,10 @@ namespace TelegramBot.ActionResults
     public class EmptyResult : IActionResult
     {
         /// <summary>
-        /// Does nothing.
+        /// Executes the result asynchronously.
         /// </summary>
-        /// <param name="context">The context.</param>
-        /// <returns>Task representing the result of the action.</returns>
+        /// <param name="context">Action context.</param>
+        /// <returns>The task representing the result of the action.</returns>
         public Task ExecuteResultAsync(ActionContext context)
         {
             return Task.CompletedTask;
