@@ -1,4 +1,5 @@
 ﻿using System;
+using TelegramBot.Builders;
 using TelegramBot.Attributes;
 using TelegramBot.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,6 +11,22 @@ namespace TelegramBot.Extensions
     /// </summary>
     public static class ServiceCollectionExtensions
     {
+        /// <summary>
+        /// Register commands for the bot. This method only registers the commands in Telegram UI.
+        /// Controllers should be registered separately. You can use commands even without this method.
+        /// </summary>
+        /// <param name="services">The service collection.</param>
+        /// <param name="setup">The setup for the command registration.</param>
+        /// <param name="language">The language for the commands, default is English.</param>
+        /// <returns>This instance of <see cref="BotBuilder"/>.</returns>
+        public static IServiceCollection RegisterCommands(this IServiceCollection services, Action<CommandRegistrationBuilder> setup, string language = "en")
+        {
+            CommandRegistrationBuilder builder = new CommandRegistrationBuilder(language);
+            setup(builder);
+            services.AddSingleton(builder);
+            return services;
+        }
+
         /// <summary>
         /// Use the authorization predicate for methods and controllers with <see cref="AuthorizeAttribute"/>
         /// </summary>

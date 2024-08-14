@@ -11,7 +11,9 @@ namespace TelegramBot.ConsoleTest
         public static void Main(string[] args)
         {
             BotBuilder builder = new BotBuilder(args)
-                .UseApiKey(x => x.FromConfiguration())
+                .UseApiKey(x => x.FromConfiguration());
+
+            builder.Services
                 .RegisterCommands(x =>
                 {
                     x.RegisterCommand("/start", "initiates the bot")
@@ -27,9 +29,7 @@ namespace TelegramBot.ConsoleTest
                         .RegisterCommand("/burgers", "показывает меню бургеров")
                         .RegisterCommand("/burgersdone", "уведомляет о готовности заказа")
                         .RegisterCommand("/receipt", "показывает чек");
-                }, "ru");
-
-            builder.Services
+                }, "ru")
                 .AddDbContext<AppDbContext>(x => x.UseSqlite("Data Source=app.db"))
                 .UseAuthorizationHandler<AuthorizationHandler>();
             var app = builder.Build();

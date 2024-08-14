@@ -124,21 +124,6 @@ namespace TelegramBot.Builders
         }
 
         /// <summary>
-        /// Register commands for the bot. This method only registers the commands in Telegram UI.
-        /// Controllers should be registered separately. You can use commands even without this method.
-        /// </summary>
-        /// <param name="setup">The setup for the command registration.</param>
-        /// <param name="language">The language for the commands, default is English.</param>
-        /// <returns>This instance of <see cref="BotBuilder"/>.</returns>
-        public BotBuilder RegisterCommands(Action<CommandRegistrationBuilder> setup, string language = "en")
-        {
-            CommandRegistrationBuilder builder = new CommandRegistrationBuilder(language);
-            setup(builder);
-            Services.AddSingleton(builder);
-            return this;
-        }
-
-        /// <summary>
         /// Build the bot.
         /// </summary>
         /// <returns>Built bot.</returns>
