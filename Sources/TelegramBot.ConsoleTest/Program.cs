@@ -17,7 +17,8 @@ namespace TelegramBot.ConsoleTest
                     x.RegisterCommand("/start", "initiates the bot")
                         .RegisterCommand("/help", "shows help message")
                         .RegisterCommand("/burgers", "shows burgers menu")
-                        .RegisterCommand("/burgersdone", "notifies that the order is ready");
+                        .RegisterCommand("/burgersdone", "notifies that the order is ready")
+                        .RegisterCommand("/receipt", "shows the receipt");
                 }, "en");
 
             builder.Services
