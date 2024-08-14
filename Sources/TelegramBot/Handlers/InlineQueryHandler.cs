@@ -56,10 +56,13 @@ namespace TelegramBot.Handlers
                         if (match)
                         {
                             var args = _args.ToArray();
-                            ObjectHelpers.TryConvertParameters(method, args);
-                            _args.Clear();
-                            _args.AddRange(args);
-                            return method;
+                            bool converted = ObjectHelpers.TryConvertParameters(method, args);
+                            if (converted)
+                            {
+                                _args.Clear();
+                                _args.AddRange(args);
+                                return method;
+                            }
                         }
                     }
                 }
