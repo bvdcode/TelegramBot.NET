@@ -206,10 +206,16 @@ namespace TelegramBot
         private async Task UpdateHandler(ITelegramBotClient client, Update update, CancellationToken token)
         {
             CheckDisposed();
-            if (update.Message != null && !string.IsNullOrWhiteSpace(update.Message.Text) && update.Message.Text.StartsWith('/'))
+            if (update.Message != null && !string.IsNullOrWhiteSpace(update.Message.Text) && !update.Message.Text.StartsWith('/'))
             {
                 _logger.LogInformation("Received text message: {Text}.", update.Message.Text);
                 var handler = new TextMessageHandler(_controllerMethods, update);
+                await HandleRequestAsync(handler, update);
+            }
+            else if (update.Message != null && !string.IsNullOrWhiteSpace(update.Message.Text) && update.Message.Text.StartsWith('/'))
+            {
+                _logger.LogInformation("Received text command: {Text}.", update.Message.Text);
+                var handler = new TextCommandHandler(_controllerMethods, update);
                 await HandleRequestAsync(handler, update);
             }
             else if (update.CallbackQuery != null && update.CallbackQuery.Data != null)

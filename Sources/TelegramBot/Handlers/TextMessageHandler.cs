@@ -1,6 +1,5 @@
 ﻿using System.Reflection;
 using Telegram.Bot.Types;
-using TelegramBot.Helpers;
 using TelegramBot.Attributes;
 using System.Collections.Generic;
 
@@ -19,59 +18,63 @@ namespace TelegramBot.Handlers
 
         private MethodInfo? GetMethodInfo(IReadOnlyCollection<MethodInfo> controllerMethods, Update update)
         {
-            if (update.Type != Telegram.Bot.Types.Enums.UpdateType.Message || update.Message == null)
+            if (update.Type != Telegram.Bot.Types.Enums.UpdateType.Message
+                || update.Message == null
+                || string.IsNullOrWhiteSpace(update.Message.Text))
             {
                 return null;
             }
-            var message = update.Message;
-            var parts = message.Text!.Split(' ');
-            string command = parts[0];
-            if (!command.StartsWith('/'))
-            {
-                return null;
-            }
-            if (parts.Length > 1)
-            {
-                _args.AddRange(parts[1..]);
-            }
+            string text = update.Message.Text;
 
             List<MethodInfo> methods = new List<MethodInfo>();
             foreach (var method in controllerMethods)
             {
-                var attributes = method.GetCustomAttributes(typeof(TextCommandAttribute), false);
+                var attributes = method.GetCustomAttributes(typeof(TextQueryAttribute), false);
                 foreach (var attribute in attributes)
                 {
-                    if (attribute is TextCommandAttribute botCommandAttribute)
+                    if (attribute is TextQueryAttribute botTextAttribute)
                     {
-                        if (botCommandAttribute.Command == command)
+                        if (method.GetParameters().Length > 1)
                         {
-                            if (_args.Count == method.GetParameters().Length)
+                            continue;
+                        }
+                        if (method.GetParameters().Length == 1)
+                        {
+                            if (method.GetParameters()[0].ParameterType != typeof(string))
                             {
-                                bool converted = ObjectHelpers.TryConvertParameters(method, _args.ToArray());
-                                if (converted)
-                                {
-                                    methods.Add(method);
-                                }
+                                continue;
                             }
+                        }
+                        if (botTextAttribute.Regex == null)
+                        {
+                            methods.Add(method);
+                        }
+                        else if (botTextAttribute.Regex.IsMatch(text))
+                        {
+                            methods.Add(method);
+                        }
+                        else
+                        {
+                            continue;
                         }
                     }
                 }
             }
             if (methods.Count == 1)
             {
-                var args = _args.ToArray();
-                ObjectHelpers.TryConvertParameters(methods[0], args);
-                _args.Clear();
-                _args.AddRange(args);
-                return methods[0];
+                var method = methods[0];
+                if (method.GetParameters().Length > 0)
+                {
+                    _args.Add(text);
+                }
+                return method;
             }
             else if (methods.Count > 1)
             {
-                throw new AmbiguousMatchException("Multiple methods found with the same command and arguments: " + command);
+                throw new AmbiguousMatchException("Multiple methods found for text: " + text);
             }
             return null;
         }
-
 
         public object[]? GetArguments()
         {
