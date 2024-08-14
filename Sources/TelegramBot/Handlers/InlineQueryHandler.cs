@@ -3,6 +3,7 @@ using System.Reflection;
 using Telegram.Bot.Types;
 using TelegramBot.Attributes;
 using System.Collections.Generic;
+using TelegramBot.Helpers;
 
 namespace TelegramBot.Handlers
 {
@@ -54,6 +55,10 @@ namespace TelegramBot.Handlers
                         }
                         if (match)
                         {
+                            var args = _args.ToArray();
+                            ObjectHelpers.TryConvertParameters(method, args);
+                            _args.Clear();
+                            _args.AddRange(args);
                             return method;
                         }
                     }
