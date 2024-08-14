@@ -24,7 +24,7 @@ You can find usage examples in the [TelegramBot.ConsoleTest](https://github.com/
 
 Start by importing the library into your project
 
-`dotnet add package TelegramBot.NET --version 1.0.8`
+`dotnet add package TelegramBot.NET`
 
 1. Implement simple handler in your `Program.cs`
 
