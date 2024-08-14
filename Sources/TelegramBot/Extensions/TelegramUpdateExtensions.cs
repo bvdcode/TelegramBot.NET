@@ -57,5 +57,28 @@ namespace TelegramBot.Extensions
             user = null!;
             return false;
         }
+
+        /// <summary>
+        /// Tries to get the message ID of the update.
+        /// </summary>
+        /// <param name="update">Telegram update.</param>
+        /// <param name="messageId">Message identifier.</param>
+        /// <returns>If the message identifier is not 0, returns true; otherwise, false.</returns>
+        public static bool TryGetMessageId(this Update update, out int messageId)
+        {
+            if (update.Message != null)
+            {
+                messageId = update.Message.MessageId;
+                return true;
+            }
+            else if (update.CallbackQuery != null && update.CallbackQuery.Message != null)
+            {
+                messageId = update.CallbackQuery.Message.MessageId;
+                return true;
+            }
+
+            messageId = 0;
+            return false;
+        }
     }
 }

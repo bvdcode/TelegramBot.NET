@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
+using Telegram.Bot;
 using Telegram.Bot.Types;
+using TelegramBot.Extensions;
 using TelegramBot.Abstractions;
 using TelegramBot.ActionResults;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -23,6 +25,11 @@ namespace TelegramBot.Controllers
         /// Update received from the user.
         /// </summary>
         public Update Update { get; internal set; } = null!;
+
+        /// <summary>
+        /// <see cref="ITelegramBotClient"/> instance.
+        /// </summary>
+        public ITelegramBotClient Client { get; internal set; } = null!;
 
         /// <summary>
         /// Sends a text message to the sender.
@@ -154,6 +161,25 @@ namespace TelegramBot.Controllers
         {
             string json = GetValue(key);
             return string.IsNullOrWhiteSpace(json) ? default! : System.Text.Json.JsonSerializer.Deserialize<TValue>(json)!;
+        }
+
+        /// <summary>
+        /// Deletes message from the current update, or does nothing if the message identifier is not found.
+        /// <br/>
+        /// Note: this method does not throw exceptions when the message ID is not found, access is denied, message is already deleted etc.
+        /// </summary>
+        public void Delete()
+        {
+            bool hasMessageId = Update.TryGetMessageId(out int messageId);
+            if (!hasMessageId)
+            {
+                return;
+            }
+            try
+            {
+                Client.DeleteMessageAsync(User.Id, messageId);
+            }
+            catch (Exception) { }
         }
     }
 }

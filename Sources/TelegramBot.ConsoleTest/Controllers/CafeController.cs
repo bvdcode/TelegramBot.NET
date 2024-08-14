@@ -49,7 +49,7 @@ namespace TelegramBot.ConsoleTest.Controllers
 
             await telegramBotClient.SendTextMessageAsync(adminId, orderText);
             SetValue("customerId", User.Id);
-            await telegramBotClient.DeleteMessageAsync(User.Id, Update.CallbackQuery!.Message!.MessageId);
+            Delete();
             return Text(text);
         }
 
