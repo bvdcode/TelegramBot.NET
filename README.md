@@ -20,6 +20,8 @@ Now you can see the same pattern in Telegram Bot API.
 
 You can find usage examples in the [TelegramBot.ConsoleTest](https://github.com/bvdcode/TelegramBot.NET/tree/main/Sources/TelegramBot.ConsoleTest) project.
 
+You can find Simple Cafe Market example in [this](https://github.com/bvdcode/TelegramBot.NET/blob/main/Sources/TelegramBot.ConsoleTest/Controllers/CafeController.cs) controller sample. 
+
 # Getting Started
 
 Start by importing the library into your project
