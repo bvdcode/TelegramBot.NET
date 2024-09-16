@@ -29,40 +29,8 @@ namespace TelegramBot.Handlers
             List<MethodInfo> methods = new List<MethodInfo>();
             foreach (var method in controllerMethods)
             {
-                var attributes = method.GetCustomAttributes(typeof(InlineCommandAttribute), false);
-                foreach (var attribute in attributes)
-                {
-                    if (attribute is InlineCommandAttribute botCommandAttribute)
-                    {
-                        string[] controllerCommandParts = botCommandAttribute.Command.Split('/');
-                        string[] incomingCommandParts = command.Split('/');
-                        if (controllerCommandParts.Length != incomingCommandParts.Length)
-                        {
-                            continue;
-                        }
-                        bool match = true;
-                        for (int i = 0; i < controllerCommandParts.Length; i++)
-                        {
-                            if (controllerCommandParts[i] != incomingCommandParts[i] 
-                                && !controllerCommandParts[i].StartsWith('{') 
-                                && !controllerCommandParts[i].EndsWith('}'))
-                            {
-                                match = false;
-                                break;
-                            }
-                            if (controllerCommandParts[i].StartsWith('{') 
-                                && controllerCommandParts[i].EndsWith('}'))
-                            {
-                                _args.Add(incomingCommandParts[i]);
-                            }
-                        }
-                        if (!match)
-                        {
-                            continue;
-                        }
-                        methods.Add(method);
-                    }
-                }
+                var foundMethods = GetMethodsWithArguments(method, command);
+                methods.AddRange(foundMethods);
             }
             if (methods.Count == 1)
             {
@@ -77,6 +45,46 @@ namespace TelegramBot.Handlers
                 throw new AmbiguousMatchException("Multiple methods found with the same command and arguments: " + command);
             }
             return null;
+        }
+
+        private IEnumerable<MethodInfo> GetMethodsWithArguments(MethodInfo method, string command)
+        {
+            List<MethodInfo> methods = new List<MethodInfo>();
+            var attributes = method.GetCustomAttributes(typeof(InlineCommandAttribute), false);
+            foreach (var attribute in attributes)
+            {
+                if (attribute is InlineCommandAttribute botCommandAttribute)
+                {
+                    string[] controllerCommandParts = botCommandAttribute.Command.Split('/');
+                    string[] incomingCommandParts = command.Split('/');
+                    if (controllerCommandParts.Length != incomingCommandParts.Length)
+                    {
+                        continue;
+                    }
+                    bool match = true;
+                    for (int i = 0; i < controllerCommandParts.Length; i++)
+                    {
+                        if (controllerCommandParts[i] != incomingCommandParts[i]
+                            && !controllerCommandParts[i].StartsWith('{')
+                            && !controllerCommandParts[i].EndsWith('}'))
+                        {
+                            match = false;
+                            break;
+                        }
+                        if (controllerCommandParts[i].StartsWith('{')
+                            && controllerCommandParts[i].EndsWith('}'))
+                        {
+                            _args.Add(incomingCommandParts[i]);
+                        }
+                    }
+                    if (!match)
+                    {
+                        continue;
+                    }
+                    methods.Add(method);
+                }
+            }
+            return methods;
         }
 
         public object[]? GetArguments()
