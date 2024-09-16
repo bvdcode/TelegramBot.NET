@@ -1,15 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace TelegramBot.Attributes
 {
     /// <summary>
-    /// 
+    /// Attribute to mark a method as requiring authorization.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-    public class AuthorizeAttribute : Attribute
-    {
-
-    }
+    public class AuthorizeAttribute : Attribute { }
 }

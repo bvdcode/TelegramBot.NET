@@ -245,6 +245,40 @@ namespace TelegramBot
                 _logger.LogWarning("Method not found for message: {Text}.", update.Message?.Text);
                 return;
             }
+            bool isAuthorized = await AuthorizeAsync(method, user);
+            if (!isAuthorized)
+            {
+                return;
+            }
+            CheckMethodMatching(method, args);
+            BotControllerBase controller = (BotControllerBase)ActivatorUtilities.CreateInstance(_serviceProvider, method.DeclaringType!);
+            controller.Update = update;
+            controller.User = user;
+            controller.Client = _client;
+            if (_serviceProvider.GetService<IKeyValueProvider>() is IKeyValueProvider keyValueProvider)
+            {
+                controller.KeyValueProvider = keyValueProvider;
+            }
+            var result = method.Invoke(controller, args);
+            await ExecuteResultAsync(result, user.Id);
+            await DisposeAsync(controller);
+            await DisposeAsync(result);
+        }
+
+        private void CheckMethodMatching(MethodInfo method, object[]? args)
+        {
+            if (method.ReturnType != typeof(Task<IActionResult>) && method.ReturnType != typeof(IActionResult))
+            {
+                throw new InvalidOperationException("Invalid return type: " + method.ReturnType.Name);
+            }
+            if (args != null && method.GetParameters().Length != args?.Length)
+            {
+                throw new InvalidOperationException("Invalid arguments count: " + args?.Length);
+            }
+        }
+
+        private async Task<bool> AuthorizeAsync(MethodInfo method, User user)
+        {
             if (method.GetCustomAttribute<AuthorizeAttribute>() != null
                 || method.DeclaringType?.GetCustomAttribute<AuthorizeAttribute>() != null)
             {
@@ -255,58 +289,39 @@ namespace TelegramBot
                         await authorizationHandler
                             .HandleUnauthorized(user)
                             .ExecuteResultAsync(new ActionContext(_client, user.Id));
-                        return;
+                        return false;
                     }
                 }
             }
-            if (method.ReturnType != typeof(Task<IActionResult>) && method.ReturnType != typeof(IActionResult))
+            return true;
+        }
+
+        private async Task DisposeAsync(object obj)
+        {
+            if (obj is IAsyncDisposable asyncDisposable)
             {
-                throw new InvalidOperationException("Invalid return type: " + method.ReturnType.Name);
+                await asyncDisposable.DisposeAsync();
             }
-            if (args != null && method.GetParameters().Length != args?.Length)
+            else if (obj is IDisposable disposable)
             {
-                throw new InvalidOperationException("Invalid arguments count: " + args?.Length);
+                disposable.Dispose();
             }
-            BotControllerBase controller = (BotControllerBase)ActivatorUtilities.CreateInstance(_serviceProvider, method.DeclaringType!);
-            controller.Update = update;
-            controller.User = user;
-            controller.Client = _client;
-            if (_serviceProvider.GetService<IKeyValueProvider>() is IKeyValueProvider keyValueProvider)
-            {
-                controller.KeyValueProvider = keyValueProvider;
-            }
-            var result = method.Invoke(controller, args);
+        }
+
+        private async Task ExecuteResultAsync(object result, long userId)
+        {
             if (result is Task<IActionResult> taskResult)
             {
-                await (await taskResult).ExecuteResultAsync(new ActionContext(_client, user.Id));
+                await (await taskResult).ExecuteResultAsync(new ActionContext(_client, userId));
             }
             else if (result is IActionResult actionResult)
             {
-                await actionResult.ExecuteResultAsync(new ActionContext(_client, user.Id));
+                await actionResult.ExecuteResultAsync(new ActionContext(_client, userId));
             }
             else
             {
                 throw new InvalidOperationException("Invalid result type: " + result.GetType().Name);
             }
-
-            if (controller is IAsyncDisposable asyncDisposable)
-            {
-                await asyncDisposable.DisposeAsync();
-            }
-            else if (controller is IDisposable disposable)
-            {
-                disposable.Dispose();
-            }
-
-            if (result is IAsyncDisposable asyncDisposableResult)
-            {
-                await asyncDisposableResult.DisposeAsync();
-            }
-            else if (result is IDisposable disposableResult)
-            {
-                disposableResult.Dispose();
-            }
-
         }
 
         private void CheckDisposed()
