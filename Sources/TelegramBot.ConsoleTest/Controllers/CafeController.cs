@@ -30,7 +30,7 @@ namespace TelegramBot.ConsoleTest.Controllers
             const int burgerPrice = 5;
             const int drinkPrice = 2;
             int cookTime = Random.Shared.Next(18, 35);
-            int totalPrice = burgers * burgerPrice + (drink ? drinkPrice : 0);
+            int totalPrice = (burgers * burgerPrice) + (drink ? drinkPrice : 0);
 
             string text = "🍽🍽🍽🍽🍽🍽🍽🍽🍽🍽🍽🍽\n" +
                 "Vadim's Burgers got your order!\n\n" +
