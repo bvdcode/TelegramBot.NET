@@ -1,18 +1,13 @@
 ﻿using System;
 using System.Linq;
 using Telegram.Bot;
-using System.Threading;
-using Telegram.Bot.Types;
 using TelegramBot.Services;
 using TelegramBot.Providers;
-using TelegramBot.Attributes;
 using TelegramBot.Abstractions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using TelegramBot.Controllers;
-using System.Collections.Generic;
 
 namespace TelegramBot.Builders
 {
@@ -55,6 +50,9 @@ namespace TelegramBot.Builders
                 builder.AddConsole();
                 builder.AddConfiguration(Configuration.GetSection("Logging"));
             });
+            Services.AddSingleton(Configuration);
+            Services.AddSingleton<IConfiguration>(Configuration);
+            Services.AddSingleton<IConfigurationRoot>(Configuration);
         }
 
         private string _baseApiUrl = Constants.DefaultBaseApiUrl;
