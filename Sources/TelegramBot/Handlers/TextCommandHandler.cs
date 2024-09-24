@@ -3,6 +3,7 @@ using Telegram.Bot.Types;
 using TelegramBot.Helpers;
 using TelegramBot.Attributes;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace TelegramBot.Handlers
 {
@@ -26,7 +27,35 @@ namespace TelegramBot.Handlers
                 return null;
             }
             var message = update.Message;
-            var parts = message.Text.Split(' ');
+            // /mail Vadik vadbex@gmail.com Test "Hello! It's me..."
+            string[] parts = message.Text.Split(' ', System.StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 0)
+            {
+                return null;
+            }
+            // if part is quoted, then join it with the next part
+            for (int i = 0; i < parts.Length; i++)
+            {
+                if (parts[i].StartsWith('"'))
+                {
+                    for (int j = i + 1; j < parts.Length; j++)
+                    {
+                        if (parts[j].EndsWith('"'))
+                        {
+                            parts[i] = parts[i][1..] + " " + parts[j][..^1];
+                            parts[j] = string.Empty;
+                            break;
+                        }
+                    }
+                }
+            }
+            parts = parts
+                .Where(p => !string.IsNullOrWhiteSpace(p))
+                .ToArray();
+            if (parts.Length == 0)
+            {
+                return null;
+            }
             string command = parts[0];
             if (!command.StartsWith('/'))
             {
