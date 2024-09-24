@@ -27,29 +27,36 @@ namespace TelegramBot.Handlers
                 return null;
             }
             var message = update.Message;
-            // /mail Vadik vadbex@gmail.com Test "Hello! It's me..."
-            string[] parts = message.Text.Split(' ', System.StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length == 0)
+            string[] parts = message.Text.Split(' ');
+            List<string> arguments = new List<string>();
+            string currentArgument = string.Empty;
+            foreach (var part in parts)
             {
-                return null;
-            }
-            // if part is quoted, then join it with the next part
-            for (int i = 0; i < parts.Length; i++)
-            {
-                if (parts[i].StartsWith('"'))
+                if (part.StartsWith('"') && part.EndsWith('"'))
                 {
-                    for (int j = i + 1; j < parts.Length; j++)
-                    {
-                        if (parts[j].EndsWith('"'))
-                        {
-                            parts[i] = parts[i][1..] + " " + parts[j][..^1];
-                            parts[j] = string.Empty;
-                            break;
-                        }
-                    }
+                    arguments.Add(part);
+                }
+                else if (part.StartsWith('"'))
+                {
+                    currentArgument = part;
+                }
+                else if (part.EndsWith('"'))
+                {
+                    currentArgument += " " + part;
+                    arguments.Add(currentArgument);
+                    currentArgument = string.Empty;
+                }
+                else if (!string.IsNullOrEmpty(currentArgument))
+                {
+                    currentArgument += " " + part;
+                }
+                else
+                {
+                    arguments.Add(part);
                 }
             }
-            parts = parts
+            parts = arguments
+                .Select(p => p.Trim('"'))
                 .Where(p => !string.IsNullOrWhiteSpace(p))
                 .ToArray();
             if (parts.Length == 0)
