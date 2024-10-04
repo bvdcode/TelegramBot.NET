@@ -20,16 +20,51 @@ namespace TelegramBot.Handlers
 
         private MethodInfo? GetMethodInfo(IReadOnlyCollection<MethodInfo> controllerMethods, Update update)
         {
-            if (update.Type != Telegram.Bot.Types.Enums.UpdateType.Message 
-                || update.Message == null
-                || string.IsNullOrWhiteSpace(update.Message.Text))
+            if (!IsValidUpdate(update))
             {
                 return null;
             }
-            var message = update.Message;
-            string[] parts = message.Text.Split(' ');
-            List<string> arguments = new List<string>();
-            string currentArgument = string.Empty;
+
+            var parts = GetCommandParts(update.Message!.Text!);
+            if (parts.Length == 0)
+            {
+                return null;
+            }
+
+            var command = parts[0];
+            if (!IsCommandValid(command))
+            {
+                return null;
+            }
+
+            AddArguments(parts);
+
+            var methods = FindMatchingMethods(controllerMethods, command);
+            if (methods.Count == 1)
+            {
+                return methods[0];
+            }
+            else if (methods.Count > 1)
+            {
+                throw new AmbiguousMatchException("Multiple methods found with the same command and arguments: " + command);
+            }
+
+            return null;
+        }
+
+        private bool IsValidUpdate(Update update)
+        {
+            return update.Type == Telegram.Bot.Types.Enums.UpdateType.Message
+                && update.Message != null
+                && !string.IsNullOrWhiteSpace(update.Message.Text);
+        }
+
+        private string[] GetCommandParts(string text)
+        {
+            var parts = text.Split(' ');
+            var arguments = new List<string>();
+            var currentArgument = string.Empty;
+
             foreach (var part in parts)
             {
                 if (part.StartsWith('"') && part.EndsWith('"'))
@@ -55,28 +90,34 @@ namespace TelegramBot.Handlers
                     arguments.Add(part);
                 }
             }
-            parts = arguments
+
+            return arguments
                 .Select(p => p.Trim('"'))
                 .Where(p => !string.IsNullOrWhiteSpace(p))
                 .ToArray();
-            if (parts.Length == 0)
-            {
-                return null;
-            }
-            string command = parts[0];
-            if (!command.StartsWith('/'))
-            {
-                return null;
-            }
+        }
+
+        private bool IsCommandValid(string command)
+        {
+            return command.StartsWith('/');
+        }
+
+        private void AddArguments(string[] parts)
+        {
             if (parts.Length > 1)
             {
                 _args.AddRange(parts[1..]);
             }
+        }
 
-            List<MethodInfo> methods = new List<MethodInfo>();
+        private List<MethodInfo> FindMatchingMethods(IReadOnlyCollection<MethodInfo> controllerMethods, string command)
+        {
+            var methods = new List<MethodInfo>();
+
             foreach (var method in controllerMethods)
             {
                 var attributes = method.GetCustomAttributes(typeof(TextCommandAttribute), false);
+
                 foreach (var attribute in attributes)
                 {
                     if (attribute is TextCommandAttribute botCommandAttribute)
@@ -85,8 +126,8 @@ namespace TelegramBot.Handlers
                         {
                             if (_args.Count == method.GetParameters().Length)
                             {
-                                bool converted = ObjectHelpers.TryConvertParameters(method, _args.ToArray());
-                                if (converted)
+                                var args = _args.ToArray();
+                                if (ObjectHelpers.TryConvertParameters(method, args))
                                 {
                                     methods.Add(method);
                                 }
@@ -95,21 +136,17 @@ namespace TelegramBot.Handlers
                     }
                 }
             }
+
             if (methods.Count == 1)
             {
                 var args = _args.ToArray();
                 ObjectHelpers.TryConvertParameters(methods[0], args);
                 _args.Clear();
                 _args.AddRange(args);
-                return methods[0];
             }
-            else if (methods.Count > 1)
-            {
-                throw new AmbiguousMatchException("Multiple methods found with the same command and arguments: " + command);
-            }
-            return null;
-        }
 
+            return methods;
+        }
 
         public object[]? GetArguments()
         {
