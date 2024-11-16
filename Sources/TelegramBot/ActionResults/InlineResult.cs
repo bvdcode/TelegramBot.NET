@@ -46,12 +46,12 @@ namespace TelegramBot.ActionResults
         /// <returns>The task representing the result of the action.</returns>
         public async Task ExecuteResultAsync(ActionContext context)
         {
-            ParseMode? parseMode = null;
+            ParseMode parseMode = ParseMode.None;
             if (UseMarkdown)
             {
                 parseMode = ParseMode.MarkdownV2;
             }
-            await context.Bot.SendTextMessageAsync(context.ChatId, Text, replyMarkup: Keyboard, parseMode: parseMode);
+            await context.Bot.SendMessage(context.ChatId, Text, replyMarkup: Keyboard, parseMode: parseMode);
         }
     }
 }

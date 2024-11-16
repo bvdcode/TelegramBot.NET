@@ -60,7 +60,7 @@ namespace TelegramBot.ActionResults
         public Task ExecuteResultAsync(ActionContext context)
         {
             InputFile file = InputFile.FromStream(_fileStream, _fileName);
-            return context.Bot.SendDocumentAsync(context.ChatId, document: file);
+            return context.Bot.SendDocument(context.ChatId, document: file);
         }
     }
 }

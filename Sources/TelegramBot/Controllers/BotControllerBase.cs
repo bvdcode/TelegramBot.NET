@@ -137,7 +137,7 @@ namespace TelegramBot.Controllers
             }
             try
             {
-                Client.DeleteMessageAsync(User.Id, messageId);
+                Client.DeleteMessage(User.Id, messageId);
             }
             catch (Exception) { }
         }

@@ -5,18 +5,17 @@ using System.Threading;
 using System.Reflection;
 using Telegram.Bot.Types;
 using TelegramBot.Handlers;
+using TelegramBot.Services;
+using TelegramBot.Builders;
+using TelegramBot.Attributes;
 using System.Threading.Tasks;
 using TelegramBot.Extensions;
 using TelegramBot.Controllers;
 using TelegramBot.Abstractions;
 using System.Collections.Generic;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Newtonsoft.Json.Linq;
-using TelegramBot.Attributes;
-using TelegramBot.Services;
-using TelegramBot.Builders;
 
 namespace TelegramBot
 {
@@ -104,7 +103,7 @@ namespace TelegramBot
             CheckDisposed();
             try
             {
-                var botUser = _client.GetMeAsync().Result;
+                var botUser = _client.GetMe().Result;
                 _client.StartReceiving(UpdateHandler, ErrorHandler, cancellationToken: mergedToken);
                 _logger.LogInformation("Bot '{botUser}' started - receiving updates.", botUser.Username);
             }
@@ -117,28 +116,31 @@ namespace TelegramBot
                 _logger.LogError(ex, "Error occurred while starting the bot. Probably the bot token is invalid or the network is not available.");
                 throw ex;
             }
+
+            var hostApplicationLifetime = _serviceProvider.GetService<IHostApplicationLifetime>() as HostApplicationLifetime
+                ?? throw new InvalidOperationException("Host application lifetime is not registered.");
+            hostApplicationLifetime.NotifyStarted();
+
             var hostedServices = _serviceProvider.GetServices<IHostedService>();
             foreach (var hostedService in hostedServices)
             {
                 await hostedService.StartAsync(mergedToken);
                 _logger.LogInformation("Started '{hostedService}'.", hostedService.GetType().Name);
             }
-            var hostApplicationLifetime = _serviceProvider.GetService<IHostApplicationLifetime>()
-                as HostApplicationLifetime ?? throw new InvalidOperationException("Host application lifetime is not registered.");
+
             var commandRegistrationBuilders = _serviceProvider.GetServices<CommandRegistrationBuilder>();
             if (commandRegistrationBuilders != null && commandRegistrationBuilders.Any())
             {
                 foreach (var builder in commandRegistrationBuilders)
                 {
                     var commands = builder.Build();
-                    await _client.SetMyCommandsAsync(commands,
+                    await _client.SetMyCommands(commands,
                             languageCode: builder.Language,
                             cancellationToken: mergedToken);
                     _logger.LogInformation("Registered {count} commands for language '{language}'.",
                         commands.Count(), builder.Language);
                 }
             }
-            hostApplicationLifetime.NotifyStarted();
         }
 
         private void OnProcessExit(object sender, EventArgs e)

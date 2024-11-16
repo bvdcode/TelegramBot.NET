@@ -48,7 +48,7 @@ namespace TelegramBot.ConsoleTest.Controllers
             $"Total: ${totalPrice}.00\n" +
                 "Send /burgersdone when you are ready to pick up";
 
-            await telegramBotClient.SendTextMessageAsync(adminId, orderText);
+            await telegramBotClient.SendMessage(adminId, orderText);
             SetValue("customerId", User.Id);
             Delete();
             return Text(text);
@@ -67,7 +67,7 @@ namespace TelegramBot.ConsoleTest.Controllers
             {
                 return Text("You have no active orders");
             }
-            await telegramBotClient.SendTextMessageAsync(customerId, text);
+            await telegramBotClient.SendMessage(customerId, text);
             return Text(text);
         }
 
