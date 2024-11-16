@@ -12,8 +12,9 @@ namespace TelegramBot.Extensions
     public static class ServiceCollectionExtensions
     {
         /// <summary>
-        /// Register commands for the bot. This method only registers the commands in Telegram UI.
-        /// Controllers should be registered separately. You can use commands even without this method.
+        /// Register commands for the bot. This method only registers the commands in Telegram UI. <br/>
+        /// Controllers should be registered separately with <see cref="IBot.MapControllers"/> <br/>
+        /// You can use commands even without this method.
         /// </summary>
         /// <param name="services">The service collection.</param>
         /// <param name="setup">The setup for the command registration.</param>
