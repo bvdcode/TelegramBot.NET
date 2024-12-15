@@ -11,6 +11,7 @@ namespace TelegramBot.ConsoleTest
         public static void Main(string[] args)
         {
             BotBuilder builder = new BotBuilder(args)
+                .Setup(x => x.ReceiveUpdates = false)
                 .UseApiKey(x => x.FromConfiguration());
 
             builder.Services

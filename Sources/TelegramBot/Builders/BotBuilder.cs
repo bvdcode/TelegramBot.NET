@@ -55,6 +55,7 @@ namespace TelegramBot.Builders
             Services.AddSingleton<IConfigurationRoot>(Configuration);
         }
 
+        private readonly BotConfiguration _botConfiguration = new BotConfiguration();
         private string _baseApiUrl = Constants.DefaultBaseApiUrl;
         private string? _token;
 
@@ -88,13 +89,13 @@ namespace TelegramBot.Builders
         /// <summary>
         /// Use the API key for the Telegram bot.
         /// </summary>
-        /// <param name="value">The configuration for the Telegram API key.</param>
+        /// <param name="setupApiKey">The configuration for the Telegram API key.</param>
         /// <returns>This instance of <see cref="BotBuilder"/>.</returns>
         /// <exception cref="ArgumentNullException">Thrown when the Telegram bot token is not set in the configuration.</exception>
-        public BotBuilder UseApiKey(Action<TelegramApiKeyBuilder> value)
+        public BotBuilder UseApiKey(Action<TelegramApiKeyBuilder> setupApiKey)
         {
             TelegramApiKeyBuilder builder = new TelegramApiKeyBuilder();
-            value(builder);
+            setupApiKey(builder);
             if (!string.IsNullOrWhiteSpace(builder.ApiKey))
             {
                 _token = builder.ApiKey;
@@ -122,6 +123,17 @@ namespace TelegramBot.Builders
         }
 
         /// <summary>
+        /// Setup the bot parameters.
+        /// </summary>
+        /// <param name="setup">The configuration for the bot.</param>
+        /// <returns>This instance of <see cref="BotBuilder"/>.</returns>
+        public BotBuilder Setup(Action<BotConfiguration> setup)
+        {
+            setup(_botConfiguration);
+            return this;
+        }
+
+        /// <summary>
         /// Build the bot.
         /// </summary>
         /// <returns>Built bot.</returns>
@@ -140,7 +152,7 @@ namespace TelegramBot.Builders
                 Services.AddSingleton<IKeyValueProvider, InMemoryKeyValueProvider>();
             }
             Services.AddSingleton<IHostApplicationLifetime, HostApplicationLifetime>();
-            return new BotApp(client, Services.BuildServiceProvider());
+            return new BotApp(client, Services.BuildServiceProvider(), _botConfiguration);
         }
     }
 }

@@ -28,6 +28,7 @@ namespace TelegramBot
         private readonly ILogger<BotApp> _logger;
         private readonly TelegramBotClient _client;
         private readonly ServiceProvider _serviceProvider;
+        private readonly BotConfiguration _botConfiguration;
         private IReadOnlyCollection<MethodInfo> _controllerMethods;
         private readonly CancellationTokenSource _cancellationTokenSource;
 
@@ -41,10 +42,12 @@ namespace TelegramBot
         /// </summary>
         /// <param name="client">Telegram bot client.</param>
         /// <param name="serviceProvider">Service provider.</param>
-        public BotApp(TelegramBotClient client, ServiceProvider serviceProvider)
+        /// <param name="botConfiguration">Bot configuration.</param>
+        public BotApp(TelegramBotClient client, ServiceProvider serviceProvider, BotConfiguration botConfiguration)
         {
             _client = client;
             _serviceProvider = serviceProvider;
+            _botConfiguration = botConfiguration;
             _controllerMethods = new List<MethodInfo>();
             _cancellationTokenSource = new CancellationTokenSource();
             _logger = serviceProvider.GetRequiredService<ILogger<BotApp>>();
@@ -104,8 +107,15 @@ namespace TelegramBot
             try
             {
                 var botUser = _client.GetMe().Result;
-                _client.StartReceiving(UpdateHandler, ErrorHandler, cancellationToken: mergedToken);
-                _logger.LogInformation("Bot '{botUser}' started - receiving updates.", botUser.Username);
+                if (_botConfiguration.ReceiveUpdates)
+                {
+                    _client.StartReceiving(UpdateHandler, ErrorHandler, cancellationToken: mergedToken);
+                    _logger.LogInformation("Bot '{botUser}' started - receiving updates.", botUser.Username);
+                }
+                else
+                {
+                    _logger.LogInformation("Bot '{botUser}' started - not receiving updates.", botUser.Username);
+                }
             }
             catch (Exception ex)
             {
