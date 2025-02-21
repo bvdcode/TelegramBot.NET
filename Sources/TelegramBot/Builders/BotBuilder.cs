@@ -144,7 +144,7 @@ namespace TelegramBot.Builders
                 throw new ArgumentNullException("TelegramBotToken", "The Telegram bot token is not set.");
             }
             TelegramBotClientOptions options = new TelegramBotClientOptions(_token, _baseApiUrl);
-            TelegramBotClient client = new TelegramBotClient(options);
+            TelegramBotClient client = new TelegramBotClient(options, httpClient: _botConfiguration.HttpClient);
             Services.AddSingleton<ITelegramBotClient>(client);
             bool hasKeyValueProvider = Services.Any(service => service.ServiceType == typeof(IKeyValueProvider));
             if (!hasKeyValueProvider)
