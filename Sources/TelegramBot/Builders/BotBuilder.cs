@@ -27,6 +27,11 @@ namespace TelegramBot.Builders
         public ConfigurationManager Configuration { get; }
 
         /// <summary>
+        /// A collection of logging providers for the application to compose. This is useful for adding new logging providers.
+        /// </summary>
+        public ILoggingBuilder Logging { get; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="BotBuilder"/> class with preconfigured defaults.
         /// </summary>
         /// <returns>The <see cref="BotBuilder"/>.</returns>
@@ -50,6 +55,7 @@ namespace TelegramBot.Builders
                 builder.AddConsole();
                 builder.AddConfiguration(Configuration.GetSection("Logging"));
             });
+            Logging = new TelegramLoggerBuilder(Services);
             Services.AddSingleton(Configuration);
             Services.AddSingleton<IConfiguration>(Configuration);
             Services.AddSingleton<IConfigurationRoot>(Configuration);
