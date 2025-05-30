@@ -12,6 +12,8 @@
 
 Ready-to-use **.NET Standard** library for convenient development of Telegram bots.
 
+> TelegramBot.NET is a production-ready .NET Standard library for building Telegram bots using an architecture familiar to ASP.NET Core developers. It allows you to define message handlers as controllers, inject services via dependency injection, and reply with rich content like text, Markdown, or inline keyboards. Setup is minimal: add your bot token, implement a controller, and you're ready to go. The library supports clean CI/CD with Docker and GitHub Actions and is available on NuGet under the MIT license.
+
 # Purposes
 
 Many people know the ASP.NET Core platform and its convenience for developing web API applications.
