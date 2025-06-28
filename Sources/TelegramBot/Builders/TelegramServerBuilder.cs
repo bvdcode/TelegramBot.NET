@@ -10,6 +10,9 @@
         /// </summary>
         public string? BaseUrl { get; set; }
 
+        /// <summary>
+        /// Indicates whether to use the configuration value CustomTelegramApiUrl as the base URL.
+        /// </summary>
         internal bool UseConfiguration { get; private set; }
 
         /// <summary>

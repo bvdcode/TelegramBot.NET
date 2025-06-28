@@ -60,10 +60,12 @@ namespace TelegramBot.Builders
             Logging = new TelegramLoggerBuilder(Services);
             Services.AddSingleton(Configuration);
             Services.AddSingleton<IConfiguration>(Configuration);
+            Services.AddSingleton<IHostApplicationLifetime, HostApplicationLifetime>();
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="BotBuilder"/> class with preconfigured defaults.
+        /// Initializes a new instance of the <see cref="BotBuilder"/> class with preconfigured defaults. <br/>
+        /// Supposes to be used in ASP.NET Core applications with <see cref="IHostApplicationBuilder"/>.
         /// </summary>
         /// <param name="hostBuilder">The host application builder.</param>
         /// <returns>The <see cref="BotBuilder"/>.</returns>
@@ -186,7 +188,6 @@ namespace TelegramBot.Builders
             {
                 Services.AddSingleton<IKeyValueProvider, InMemoryKeyValueProvider>();
             }
-            Services.AddSingleton<IHostApplicationLifetime, HostApplicationLifetime>();
             Services.AddHostedService<TelegramBotHostedService>();
             Services.AddSingleton(_botConfiguration);
             Services.AddSingleton<BotControllerMethodsContainer>();
