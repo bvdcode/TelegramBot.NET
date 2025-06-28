@@ -15,7 +15,7 @@ namespace TelegramBot.ConsoleTest.Controllers
         [TextQuery(pattern: "bye")]
         public IActionResult HandleByeAsync()
         {
-            return Text("Goodbye!");
+            return Text("Goodbye!", removeReplyKeyboard: true);
         }
     }
 }

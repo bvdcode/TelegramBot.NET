@@ -1,6 +1,5 @@
 ﻿using Telegram.Bot;
 using System.Threading.Tasks;
-using Telegram.Bot.Types.Enums;
 using TelegramBot.Abstractions;
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -9,7 +8,7 @@ namespace TelegramBot.ActionResults
     /// <summary>
     /// Inline query result.
     /// </summary>
-    public class InlineResult : IActionResult
+    public class InlineEditResult : IActionResult
     {
         /// <summary>
         /// Inline message (caption).
@@ -17,9 +16,9 @@ namespace TelegramBot.ActionResults
         public string Text { get; }
 
         /// <summary>
-        /// Use markdown or just plain text.
+        /// Message identifier to edit.
         /// </summary>
-        public bool UseMarkdown { get; }
+        public int MessageId { get; }
 
         /// <summary>
         /// Inline keyboard.
@@ -31,12 +30,12 @@ namespace TelegramBot.ActionResults
         /// </summary>
         /// <param name="text">Inline message (caption).</param>
         /// <param name="keyboard">Inline keyboard.</param>
-        /// <param name="useMarkdown">Use markdown or just plain text.</param>
-        public InlineResult(string text, InlineKeyboardMarkup keyboard, bool useMarkdown)
+        /// <param name="messageId">Message identifier to edit.</param>
+        public InlineEditResult(string text, InlineKeyboardMarkup keyboard, int messageId)
         {
             Text = text;
             Keyboard = keyboard;
-            UseMarkdown = useMarkdown;
+            MessageId = messageId;
         }
 
         /// <summary>
@@ -46,12 +45,7 @@ namespace TelegramBot.ActionResults
         /// <returns>The task representing the result of the action.</returns>
         public Task ExecuteResultAsync(ActionContext context)
         {
-            ParseMode parseMode = ParseMode.None;
-            if (UseMarkdown)
-            {
-                parseMode = ParseMode.MarkdownV2;
-            }
-            return context.Bot.SendMessage(context.ChatId, Text, replyMarkup: Keyboard, parseMode: parseMode);
+            return context.Bot.EditMessageReplyMarkup(context.ChatId, messageId: MessageId, replyMarkup: Keyboard);
         }
     }
 }

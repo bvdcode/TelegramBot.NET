@@ -55,6 +55,7 @@ namespace TelegramBot.Builders
             {
                 builder.AddConsole();
                 builder.AddConfiguration(Configuration.GetSection("Logging"));
+                Console.OutputEncoding = System.Text.Encoding.UTF8;
             });
             Logging = new TelegramLoggerBuilder(Services);
             Services.AddSingleton(Configuration);

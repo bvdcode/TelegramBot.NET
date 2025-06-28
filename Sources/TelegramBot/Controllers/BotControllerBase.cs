@@ -36,15 +36,37 @@ namespace TelegramBot.Controllers
         /// Sends a text message to the sender.
         /// </summary>
         /// <param name="text">Text message.</param>
+        /// <param name="removeReplyKeyboard">Whether to clear the reply keyboard after sending the message.</param>
         /// <returns>Result of the <see cref="IActionResult"/> action.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="text"/> is null or empty.</exception>
-        public IActionResult Text(string text)
+        public IActionResult Text(string text, bool removeReplyKeyboard = false)
         {
             if (string.IsNullOrWhiteSpace(text))
             {
                 throw new ArgumentNullException(nameof(text));
             }
-            return new TextResult(text);
+            return new TextResult(text, removeReplyKeyboard);
+        }
+
+        /// <summary>
+        /// Edits a text message in the current update.
+        /// </summary>
+        /// <param name="text">Text message.</param>
+        /// <param name="keyboard">Keyboard markup.</param>
+        /// <returns>Result of the <see cref="IActionResult"/> action.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="text"/> is null or empty.</exception>
+        public IActionResult TextEdit(string text, InlineKeyboardMarkup? keyboard = null)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                throw new ArgumentNullException(nameof(text));
+            }
+            bool hasMessageId = Update.TryGetMessageId(out int messageId);
+            if (!hasMessageId)
+            {
+                throw new InvalidOperationException("Cannot edit message text without a message ID.");
+            }
+            return new TextEditResult(text, messageId, keyboard);
         }
 
         /// <summary>
@@ -89,6 +111,36 @@ namespace TelegramBot.Controllers
         }
 
         /// <summary>
+        /// Edits an inline keyboard in the current update.
+        /// </summary>
+        /// <param name="prompt">Text prompt.</param>
+        /// <param name="keyboard">Keyboard markup.</param>
+        /// <returns>Result of the <see cref="IActionResult"/> action.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="prompt"/> or <paramref name="keyboard"/> is null or empty.</exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="keyboard"/> does not contain any buttons.</exception>
+        public IActionResult InlineEdit(string prompt, InlineKeyboardMarkup keyboard)
+        {
+            if (string.IsNullOrWhiteSpace(prompt))
+            {
+                throw new ArgumentNullException(nameof(prompt));
+            }
+            if (keyboard == null)
+            {
+                throw new ArgumentNullException(nameof(keyboard));
+            }
+            if (keyboard.InlineKeyboard == null || !keyboard.InlineKeyboard.Any())
+            {
+                throw new ArgumentException("Keyboard must contain at least one button.", nameof(keyboard));
+            }
+            bool hasMessageId = Update.TryGetMessageId(out int messageId);
+            if (!hasMessageId)
+            {
+                throw new InvalidOperationException("Cannot edit inline message without a message ID.");
+            }
+            return new InlineEditResult(prompt, keyboard, messageId);
+        }
+
+        /// <summary>
         /// Do nothing.
         /// </summary>
         /// <returns>Result of the <see cref="IActionResult"/> action.</returns>
@@ -124,22 +176,30 @@ namespace TelegramBot.Controllers
         }
 
         /// <summary>
+        /// Sends an image to the sender.
+        /// </summary>
+        /// <param name="stream">Stream with image content.</param>
+        /// <param name="fileName">File name of the image.</param>
+        /// <param name="caption">Caption under the image.</param>
+        /// <param name="disposeStream">Dispose the stream after sending the image.</param>
+        public IActionResult Image(Stream stream, string fileName, string caption = "", bool disposeStream = true)
+        {
+            return new ImageResult(stream, fileName, caption, disposeStream);
+        }
+
+        /// <summary>
         /// Deletes message from the current update, or does nothing if the message identifier is not found.
         /// <br/>
         /// Note: this method does not throw exceptions when the message ID is not found, access is denied, message is already deleted etc.
         /// </summary>
-        public void Delete()
+        public IActionResult DeleteMessage()
         {
             bool hasMessageId = Update.TryGetMessageId(out int messageId);
             if (!hasMessageId)
             {
-                return;
+                return Void();
             }
-            try
-            {
-                Client.DeleteMessage(User.Id, messageId);
-            }
-            catch (Exception) { }
+            return new DeleteMessageResult(messageId);
         }
 
         /// <summary>
@@ -207,6 +267,21 @@ namespace TelegramBot.Controllers
         {
             string json = GetValue(key);
             return string.IsNullOrWhiteSpace(json) ? default! : System.Text.Json.JsonSerializer.Deserialize<TValue>(json)!;
+        }
+
+        /// <summary>
+        /// Combines multiple actions into a single action result.
+        /// </summary>
+        /// <param name="actions">Array of actions to combine.</param>
+        /// <returns>Combined action result.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="actions"/> is null or empty.</exception>
+        public IActionResult MultiAction(params IActionResult[] actions)
+        {
+            if (actions == null || actions.Length == 0)
+            {
+                throw new ArgumentNullException(nameof(actions), "At least one action must be provided.");
+            }
+            return new MultiActionResult(actions);
         }
     }
 }

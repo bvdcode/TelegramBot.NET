@@ -29,9 +29,9 @@ namespace TelegramBot.ActionResults
         /// </summary>
         /// <param name="context">Action context.</param>
         /// <returns>The task representing the result of the action.</returns>
-        public async Task ExecuteResultAsync(ActionContext context)
+        public Task ExecuteResultAsync(ActionContext context)
         {
-            await context.Bot.SendMessage(context.ChatId, Text, parseMode: ParseMode.MarkdownV2);
+            return context.Bot.SendMessage(context.ChatId, Text, parseMode: ParseMode.MarkdownV2);
         }
     }
 }

@@ -1,15 +1,17 @@
-﻿using Telegram.Bot;
+﻿using System.Text;
+using Telegram.Bot;
+using SixLabors.ImageSharp;
 using TelegramBot.Builders;
 using TelegramBot.Attributes;
 using TelegramBot.Controllers;
 using TelegramBot.Abstractions;
-using System.Text;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace TelegramBot.ConsoleTest.Controllers
 {
     public class CafeController(ITelegramBotClient telegramBotClient) : BotControllerBase
     {
-        const long adminId = 123;
+        const long chiefUserId = 123; // Replace with the actual user ID of the chief in restaurant
 
         [TextCommand("/burgers")]
         public IActionResult HandleBurgers()
@@ -21,6 +23,7 @@ namespace TelegramBot.ConsoleTest.Controllers
                 .AddButton("🍔🍔", "/burgers/2/drink/false")
                 .AddButton("🍔🥤", "/burgers/1/drink/true")
                 .AddButton("🍔🍔🥤", "/burgers/2/drink/true");
+
             return Inline("Choose your order:", builder.Build());
         }
 
@@ -48,10 +51,12 @@ namespace TelegramBot.ConsoleTest.Controllers
             $"Total: ${totalPrice}.00\n" +
                 "Send /burgersdone when you are ready to pick up";
 
-            await telegramBotClient.SendMessage(adminId, orderText);
+            await telegramBotClient.SendMessage(chiefUserId, orderText);
             SetValue("customerId", User.Id);
-            Delete();
-            return Text(text);
+            return MultiAction(
+                Text(text),
+                DeleteMessage()
+            );
         }
 
         [TextCommand("/burgersdone")]
@@ -74,6 +79,16 @@ namespace TelegramBot.ConsoleTest.Controllers
         [TextCommand("/receipt")]
         public IActionResult HandleReceipt()
         {
+            var textFileStream = WriteFile();
+            var imageStream = DrawImage();
+
+            return MultiAction(
+                File(textFileStream, "receipt.txt"),
+                Image(imageStream, "Receipt Image"));
+        }
+
+        private static MemoryStream WriteFile()
+        {
             StringBuilder stringBuilder = new();
             stringBuilder.AppendLine("Date: 2021-09-01");
             stringBuilder.AppendLine("Time: 12:00");
@@ -82,7 +97,27 @@ namespace TelegramBot.ConsoleTest.Controllers
             stringBuilder.AppendLine("Payment method: Cash");
             stringBuilder.AppendLine("Thank you for your order!");
             MemoryStream fileStream = new(Encoding.UTF8.GetBytes(stringBuilder.ToString()));
-            return File(fileStream, "receipt.txt");
+            return fileStream;
+        }
+
+        private static MemoryStream DrawImage()
+        {
+            const byte size = byte.MaxValue;
+            using Image<Rgba32> image = new(size, size, Color.Gray);
+            for (int x = 0; x < image.Width; x++)
+            {
+                for (int y = 0; y < image.Height; y++)
+                {
+                    byte r = (byte)(x % size);
+                    byte g = (byte)(y % size);
+                    byte b = (byte)((x + y) / 2 % size);
+                    image[x, y] = new Rgba32(r, g, b);
+                }
+            }
+            MemoryStream imageStream = new();
+            image.SaveAsJpegAsync(imageStream);
+            imageStream.Position = 0;
+            return imageStream;
         }
     }
 }

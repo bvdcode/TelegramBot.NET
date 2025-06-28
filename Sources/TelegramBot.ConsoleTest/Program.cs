@@ -18,6 +18,7 @@ namespace TelegramBot.ConsoleTest
                 .RegisterCommands(x =>
                 {
                     x.RegisterCommand("/start", "initiates the bot")
+                        .RegisterCommand("/counter", "simple counter command")
                         .RegisterCommand("/help", "shows help message")
                         .RegisterCommand("/burgers", "shows burgers menu")
                         .RegisterCommand("/burgersdone", "notifies that the order is ready")
@@ -26,6 +27,7 @@ namespace TelegramBot.ConsoleTest
                 .RegisterCommands(x =>
                 {
                     x.RegisterCommand("/start", "инициирует бота")
+                        .RegisterCommand("/counter", "простой счетчик")
                         .RegisterCommand("/help", "показывает сообщение справки")
                         .RegisterCommand("/burgers", "показывает меню бургеров")
                         .RegisterCommand("/burgersdone", "уведомляет о готовности заказа")
