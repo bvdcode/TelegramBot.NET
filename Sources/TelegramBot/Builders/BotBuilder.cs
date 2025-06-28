@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using TelegramBot.Containers;
 
 namespace TelegramBot.Builders
 {
@@ -24,7 +25,7 @@ namespace TelegramBot.Builders
         /// <summary>
         /// A collection of configuration providers for the application to compose. This is useful for adding new configuration sources and providers.
         /// </summary>
-        public ConfigurationManager Configuration { get; }
+        public IConfigurationManager Configuration { get; }
 
         /// <summary>
         /// A collection of logging providers for the application to compose. This is useful for adding new logging providers.
@@ -38,9 +39,9 @@ namespace TelegramBot.Builders
         public BotBuilder() : this(Array.Empty<string>()) { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="BotBuilder"/> class with preconfigured defaults.
+        /// Initializes a new instance of the <see cref="BotBuilder"/> class with preconfigured defaults and command line arguments.
         /// </summary>
-        /// <param name="args">The command line arguments.</param>
+        /// <param name="args">Command line arguments.</param>
         /// <returns>The <see cref="BotBuilder"/>.</returns>
         public BotBuilder(params string[] args)
         {
@@ -58,7 +59,34 @@ namespace TelegramBot.Builders
             Logging = new TelegramLoggerBuilder(Services);
             Services.AddSingleton(Configuration);
             Services.AddSingleton<IConfiguration>(Configuration);
-            Services.AddSingleton<IConfigurationRoot>(Configuration);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BotBuilder"/> class with preconfigured defaults.
+        /// </summary>
+        /// <param name="hostBuilder">The host application builder.</param>
+        /// <returns>The <see cref="BotBuilder"/>.</returns>
+        public BotBuilder(IHostApplicationBuilder hostBuilder) : this()
+        {
+            if (hostBuilder == null)
+            {
+                throw new ArgumentNullException(nameof(hostBuilder), "Host application builder cannot be null.");
+            }
+            if (hostBuilder.Logging == null)
+            {
+                throw new ArgumentNullException(nameof(hostBuilder.Logging), "Host application builder logging cannot be null.");
+            }
+            if (hostBuilder.Services == null)
+            {
+                throw new ArgumentNullException(nameof(hostBuilder.Services), "Host application builder services cannot be null.");
+            }
+            if (hostBuilder.Configuration == null)
+            {
+                throw new ArgumentNullException(nameof(hostBuilder.Configuration), "Host application builder configuration cannot be null.");
+            }
+            Logging = hostBuilder.Logging;
+            Services = hostBuilder.Services;
+            Configuration = hostBuilder.Configuration;
         }
 
         private readonly BotConfiguration _botConfiguration = new BotConfiguration();
@@ -119,7 +147,7 @@ namespace TelegramBot.Builders
         /// </summary>
         /// <param name="services">The services to use.</param>
         /// <returns>This instance of <see cref="BotBuilder"/>.</returns>
-        public BotBuilder UseServices(IServiceCollection services)
+        public BotBuilder AddServices(IServiceCollection services)
         {
             foreach (var service in services)
             {
@@ -158,7 +186,10 @@ namespace TelegramBot.Builders
                 Services.AddSingleton<IKeyValueProvider, InMemoryKeyValueProvider>();
             }
             Services.AddSingleton<IHostApplicationLifetime, HostApplicationLifetime>();
-            return new BotApp(client, Services.BuildServiceProvider(), _botConfiguration);
+            Services.AddHostedService<TelegramBotHostedService>();
+            Services.AddSingleton(_botConfiguration);
+            Services.AddSingleton<BotControllerMethodsContainer>();
+            return new BotApp(Services.BuildServiceProvider());
         }
     }
 }
