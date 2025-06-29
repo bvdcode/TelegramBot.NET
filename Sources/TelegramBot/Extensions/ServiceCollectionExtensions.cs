@@ -23,23 +23,17 @@ namespace TelegramBot.Extensions
         /// <returns>The modified service collection with bot controllers registered.</returns>
         public static IServiceCollection AddBotControllers(this IServiceCollection services)
         {
-            var types = Assembly.GetCallingAssembly().GetTypes();
-            List<Type> result = new List<Type>();
-            foreach (var type in types)
+            var assembly = Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();
+            var container = new BotControllerMethodsContainer();
+
+            foreach (var type in assembly.GetTypes().Where(t => t.IsSubclassOf(typeof(BotControllerBase))))
             {
-                if (type.IsSubclassOf(typeof(BotControllerBase)))
+                foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
                 {
-                    result.Add(type);
+                    container.AddMethod(method);
                 }
             }
-            var controllerMethods = result
-                .SelectMany(t => t.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
-                .ToList();
-            BotControllerMethodsContainer container = new BotControllerMethodsContainer();
-            foreach (var method in controllerMethods)
-            {
-                container.AddMethod(method);
-            }
+
             return services.AddSingleton(container);
         }
 

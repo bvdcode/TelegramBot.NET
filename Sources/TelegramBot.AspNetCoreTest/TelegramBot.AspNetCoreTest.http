@@ -1,0 +1,6 @@
+@TelegramBot.AspNetCoreTest_HostAddress = http://localhost:5196
+
+GET {{TelegramBot.AspNetCoreTest_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

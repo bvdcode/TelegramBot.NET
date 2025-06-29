@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using Telegram.Bot.Types;
+using TelegramBot.Helpers;
 using TelegramBot.Attributes;
 using System.Collections.Generic;
-using TelegramBot.Helpers;
 
 namespace TelegramBot.Handlers
 {
@@ -29,8 +30,11 @@ namespace TelegramBot.Handlers
             List<MethodInfo> methods = new List<MethodInfo>();
             foreach (var method in controllerMethods)
             {
-                var foundMethods = GetMethodsWithArguments(method, command);
-                methods.AddRange(foundMethods);
+                bool isValidMethod = IsValidMethod(method, command);
+                if (isValidMethod)
+                {
+                    methods.Add(method);
+                }
             }
             if (methods.Count == 1)
             {
@@ -42,50 +46,108 @@ namespace TelegramBot.Handlers
             }
             else if (methods.Count > 1)
             {
-                throw new AmbiguousMatchException("Multiple methods found with the same command and arguments: " + command);
+                throw new AmbiguousMatchException("Multiple methods found with the same command and arguments: " + command + "\n" + 
+                    string.Join("\n", methods.Select(m => m.Name + " - " + m.GetParameters().Length + " parameters")));
             }
             return null;
         }
 
-        private IEnumerable<MethodInfo> GetMethodsWithArguments(MethodInfo method, string command)
+        private bool IsValidMethod(MethodInfo method, string command)
         {
-            List<MethodInfo> methods = new List<MethodInfo>();
             var attributes = method.GetCustomAttributes(typeof(InlineCommandAttribute), false);
+            string[] incomingCommandParts = command.Split('/');
+
             foreach (var attribute in attributes)
             {
-                if (attribute is InlineCommandAttribute botCommandAttribute)
+                if (!(attribute is InlineCommandAttribute botAttribute))
                 {
-                    string[] controllerCommandParts = botCommandAttribute.Command.Split('/');
-                    string[] incomingCommandParts = command.Split('/');
-                    if (controllerCommandParts.Length != incomingCommandParts.Length)
+                    continue; // Skip if the attribute is not of type InlineCommandAttribute
+                }
+
+                // Если метод не имеет параметров, проверяем точное совпадение команды
+                if (method.GetParameters().Length == 0 && botAttribute.Command != command)
+                {
+                    continue; // Skip methods without parameters if the command does not match
+                }
+
+                string[] controllerCommandParts = botAttribute.Command.Split('/');
+                if (controllerCommandParts.Length != incomingCommandParts.Length)
+                {
+                    continue;
+                }
+
+                bool match = true;
+                for (int i = 0; i < controllerCommandParts.Length; i++)
+                {
+                    if (controllerCommandParts[i] != incomingCommandParts[i]
+                        && !controllerCommandParts[i].StartsWith('{')
+                        && !controllerCommandParts[i].EndsWith('}'))
                     {
-                        continue;
+                        match = false;
+                        break;
                     }
-                    bool match = true;
-                    for (int i = 0; i < controllerCommandParts.Length; i++)
+
+                    // Если это параметр в маршруте, добавляем его в аргументы
+                    if (controllerCommandParts[i].StartsWith("{") && controllerCommandParts[i].EndsWith("}"))
                     {
-                        if (controllerCommandParts[i] != incomingCommandParts[i]
-                            && !controllerCommandParts[i].StartsWith('{')
-                            && !controllerCommandParts[i].EndsWith('}'))
+                        // Проверка типа аргумента
+                        var parameter = method.GetParameters().FirstOrDefault(p => p.Name == controllerCommandParts[i].Trim('{', '}'));
+                        if (parameter != null)
                         {
-                            match = false;
-                            break;
+                            if (!TryConvertToType(incomingCommandParts[i], parameter.ParameterType))
+                            {
+                                match = false;  // If type conversion fails, break the match
+                                break;
+                            }
                         }
-                        if (controllerCommandParts[i].StartsWith('{')
-                            && controllerCommandParts[i].EndsWith('}'))
-                        {
-                            _args.Add(incomingCommandParts[i]);
-                        }
+                        _args.Add(incomingCommandParts[i]);
                     }
-                    if (!match)
-                    {
-                        continue;
-                    }
-                    methods.Add(method);
+                }
+
+                if (match)
+                {
+                    return true;
                 }
             }
-            return methods;
+            return false;
         }
+
+        private bool TryConvertToType(string value, Type targetType)
+        {
+            try
+            {
+                // Попробуем привести строку к требуемому типу
+                if (targetType == typeof(int))
+                {
+                    return int.TryParse(value, out _);  // Проверяем, может ли строка быть приведена к int
+                }
+                if (targetType == typeof(long))
+                {
+                    return long.TryParse(value, out _);  // Проверяем на long
+                }
+                if (targetType == typeof(double))
+                {
+                    return double.TryParse(value, out _);  // Проверяем на double
+                }
+                if (targetType == typeof(bool))
+                {
+                    return bool.TryParse(value, out _);  // Проверяем на bool
+                }
+                if (targetType == typeof(Guid))
+                {
+                    return Guid.TryParse(value, out _);  // Проверяем на Guid
+                }
+
+                // Если тип не поддерживается, пробуем использовать конструктор (например, для строк или других типов)
+                Convert.ChangeType(value, targetType);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
 
         public object[]? GetArguments()
         {
