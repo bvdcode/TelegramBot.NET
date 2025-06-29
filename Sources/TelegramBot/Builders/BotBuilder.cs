@@ -190,7 +190,6 @@ namespace TelegramBot.Builders
             }
             Services.AddHostedService<TelegramBotHostedService>();
             Services.AddSingleton(_botConfiguration);
-            Services.AddSingleton<BotControllerMethodsContainer>();
             return new BotApp(Services.BuildServiceProvider());
         }
     }

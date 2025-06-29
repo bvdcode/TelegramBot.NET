@@ -30,14 +30,15 @@ namespace TelegramBot.Services
 
         public TelegramBotHostedService(BotConfiguration botConfiguration, ITelegramBotClient telegramBotClient,
             ILogger<TelegramBotHostedService> logger, IServiceProvider serviceProvider, 
-            BotControllerMethodsContainer botControllerMethodsContainer)
+            BotControllerMethodsContainer? botControllerMethodsContainer)
         {
             _logger = logger;
             _client = telegramBotClient;
             _serviceProvider = serviceProvider;
             _botConfiguration = botConfiguration;
-            _methods = botControllerMethodsContainer.Methods;
             _cancellationTokenSource = new CancellationTokenSource();
+            _methods = botControllerMethodsContainer?.Methods ?? new List<MethodInfo>();
+            _logger.LogInformation("Telegram bot hosted service initialized with {methodCount} methods.", _methods.Count);
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)

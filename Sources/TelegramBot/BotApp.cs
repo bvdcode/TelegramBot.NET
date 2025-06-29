@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Linq;
 using System.Threading;
-using System.Reflection;
 using TelegramBot.Services;
 using System.Threading.Tasks;
-using TelegramBot.Containers;
-using TelegramBot.Controllers;
 using System.Collections.Generic;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -37,33 +33,6 @@ namespace TelegramBot
             _serviceProvider = serviceProvider;
             _cancellationTokenSource = new CancellationTokenSource();
             _logger = serviceProvider.GetRequiredService<ILogger<BotApp>>();
-        }
-
-        /// <summary>
-        /// Maps controllers inherited from <see cref="BotControllerBase"/>.
-        /// </summary>
-        public IBot MapControllers()
-        {
-            CheckDisposed();
-            var types = Assembly.GetCallingAssembly().GetTypes();
-            List<Type> result = new List<Type>();
-            foreach (var type in types)
-            {
-                if (type.IsSubclassOf(typeof(BotControllerBase)))
-                {
-                    result.Add(type);
-                }
-            }
-            var controllerMethods = result
-                .SelectMany(t => t.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
-                .ToList();
-            BotControllerMethodsContainer container = _serviceProvider.GetService<BotControllerMethodsContainer>()
-                ?? throw new InvalidOperationException("Bot controller methods container is not registered.");
-            foreach (var method in controllerMethods)
-            {
-                container.AddMethod(method);
-            }
-            return this;
         }
 
         /// <summary>

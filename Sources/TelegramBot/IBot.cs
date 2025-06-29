@@ -1,5 +1,4 @@
 ﻿using System.Threading;
-using TelegramBot.Controllers;
 using Microsoft.Extensions.Hosting;
 
 namespace TelegramBot
@@ -9,11 +8,6 @@ namespace TelegramBot
     /// </summary>
     public interface IBot : IHost
     {
-        /// <summary>
-        /// Maps controllers inherited from <see cref="BotControllerBase"/>.
-        /// </summary>
-        IBot MapControllers();
-
         /// <summary>
         /// Runs the bot.
         /// </summary>

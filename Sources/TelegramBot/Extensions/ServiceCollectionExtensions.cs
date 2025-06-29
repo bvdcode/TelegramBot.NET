@@ -1,7 +1,12 @@
 ﻿using System;
+using System.Linq;
+using System.Reflection;
 using TelegramBot.Builders;
 using TelegramBot.Attributes;
+using TelegramBot.Containers;
+using TelegramBot.Controllers;
 using TelegramBot.Abstractions;
+using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace TelegramBot.Extensions
@@ -12,8 +17,35 @@ namespace TelegramBot.Extensions
     public static class ServiceCollectionExtensions
     {
         /// <summary>
+        /// Registers the bot controllers in the service collection. <br/>
+        /// </summary>
+        /// <param name="services">The service collection.</param>
+        /// <returns>The modified service collection with bot controllers registered.</returns>
+        public static IServiceCollection AddBotControllers(this IServiceCollection services)
+        {
+            var types = Assembly.GetCallingAssembly().GetTypes();
+            List<Type> result = new List<Type>();
+            foreach (var type in types)
+            {
+                if (type.IsSubclassOf(typeof(BotControllerBase)))
+                {
+                    result.Add(type);
+                }
+            }
+            var controllerMethods = result
+                .SelectMany(t => t.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+                .ToList();
+            BotControllerMethodsContainer container = new BotControllerMethodsContainer();
+            foreach (var method in controllerMethods)
+            {
+                container.AddMethod(method);
+            }
+            return services.AddSingleton(container);
+        }
+
+        /// <summary>
         /// Register commands for the bot. This method only registers the commands in Telegram UI. <br/>
-        /// Controllers should be registered separately with <see cref="IBot.MapControllers"/> <br/>
+        /// Controllers should be registered separately with <see cref="AddBotControllers(IServiceCollection)"/> <br/>
         /// You can use commands even without this method.
         /// </summary>
         /// <param name="services">The service collection.</param>
@@ -24,8 +56,7 @@ namespace TelegramBot.Extensions
         {
             CommandRegistrationBuilder builder = new CommandRegistrationBuilder(language);
             setup(builder);
-            services.AddSingleton(builder);
-            return services;
+            return services.AddSingleton(builder);
         }
 
         /// <summary>
