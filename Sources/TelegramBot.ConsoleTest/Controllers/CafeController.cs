@@ -110,7 +110,7 @@ namespace TelegramBot.ConsoleTest.Controllers
                 {
                     byte r = (byte)(x % size);
                     byte g = (byte)(y % size);
-                    byte b = (byte)((x + y) / 2 % size);
+                    byte b = (byte)(((x + y) / 2) % size);
                     image[x, y] = new Rgba32(r, g, b);
                 }
             }

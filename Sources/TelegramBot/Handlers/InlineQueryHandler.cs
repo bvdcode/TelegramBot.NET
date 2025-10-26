@@ -59,15 +59,10 @@ namespace TelegramBot.Handlers
 
             foreach (var attribute in attributes)
             {
-                if (!(attribute is InlineCommandAttribute botAttribute))
+                if (!(attribute is InlineCommandAttribute botAttribute) // Skip if the attribute is not of type InlineCommandAttribute
+                    || (method.GetParameters().Length == 0 && botAttribute.Command != command)) // Skip methods without parameters if the command does not match
                 {
-                    continue; // Skip if the attribute is not of type InlineCommandAttribute
-                }
-
-                // Если метод не имеет параметров, проверяем точное совпадение команды
-                if (method.GetParameters().Length == 0 && botAttribute.Command != command)
-                {
-                    continue; // Skip methods without parameters if the command does not match
+                    continue; 
                 }
 
                 string[] controllerCommandParts = botAttribute.Command.Split('/');
@@ -87,10 +82,8 @@ namespace TelegramBot.Handlers
                         break;
                     }
 
-                    // Если это параметр в маршруте, добавляем его в аргументы
-                    if (controllerCommandParts[i].StartsWith("{") && controllerCommandParts[i].EndsWith("}"))
+                    if (controllerCommandParts[i].StartsWith('{') && controllerCommandParts[i].EndsWith('}'))
                     {
-                        // Проверка типа аргумента
                         var parameter = method.GetParameters().FirstOrDefault(p => p.Name == controllerCommandParts[i].Trim('{', '}'));
                         if (parameter != null)
                         {
@@ -116,29 +109,27 @@ namespace TelegramBot.Handlers
         {
             try
             {
-                // Попробуем привести строку к требуемому типу
                 if (targetType == typeof(int))
                 {
-                    return int.TryParse(value, out _);  // Проверяем, может ли строка быть приведена к int
+                    return int.TryParse(value, out _);
                 }
                 if (targetType == typeof(long))
                 {
-                    return long.TryParse(value, out _);  // Проверяем на long
+                    return long.TryParse(value, out _);
                 }
                 if (targetType == typeof(double))
                 {
-                    return double.TryParse(value, out _);  // Проверяем на double
+                    return double.TryParse(value, out _);
                 }
                 if (targetType == typeof(bool))
                 {
-                    return bool.TryParse(value, out _);  // Проверяем на bool
+                    return bool.TryParse(value, out _);
                 }
                 if (targetType == typeof(Guid))
                 {
-                    return Guid.TryParse(value, out _);  // Проверяем на Guid
+                    return Guid.TryParse(value, out _);
                 }
 
-                // Если тип не поддерживается, пробуем использовать конструктор (например, для строк или других типов)
                 Convert.ChangeType(value, targetType);
                 return true;
             }

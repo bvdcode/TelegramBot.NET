@@ -32,7 +32,7 @@ namespace TelegramBot.AspNetCoreTest.Controllers
                 _logger.LogWarning("Phone number exceeds 11 digits.");
                 return Void();
             }
-            value = value * 10 + digit;
+            value = (value * 10) + digit;
             SetPhoneValue(value);
             _logger.LogInformation("Phone changed: {Value}", value);
             return CreateCounterResponse(value);
