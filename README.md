@@ -36,10 +36,10 @@ Start by importing the library into your project
 static void Main(string[] args)
 {
     BotBuilder builder = new BotBuilder(args)
+        .AddBotControllers()
         .UseApiKey(x => x.FromConfiguration());
 
     var app = builder.Build();
-    app.MapControllers();
     app.Run();
 }
 ```
