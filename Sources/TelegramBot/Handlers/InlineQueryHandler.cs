@@ -25,83 +25,122 @@ namespace TelegramBot.Handlers
             {
                 return null;
             }
+
             var inlineQuery = update.CallbackQuery;
             string command = inlineQuery.Data!;
-            List<MethodInfo> methods = new List<MethodInfo>();
+
+            // Collect all candidate methods with their parsed arguments
+            var candidates = new List<(MethodInfo Method, List<object> Args)>();
             foreach (var method in controllerMethods)
             {
-                bool isValidMethod = IsValidMethod(method, command);
-                if (isValidMethod)
+                if (TryMatchMethod(method, command, out var args))
                 {
-                    methods.Add(method);
+                    candidates.Add((method, args));
                 }
             }
-            if (methods.Count == 1)
+
+            if (candidates.Count == 1)
             {
-                var args = _args.ToArray();
-                ObjectHelpers.TryConvertParameters(methods[0], args);
+                var (method, rawArgs) = candidates[0];
+                var argsArray = rawArgs.ToArray();
+                ObjectHelpers.TryConvertParameters(method, argsArray);
                 _args.Clear();
-                _args.AddRange(args);
-                return methods[0];
+                _args.AddRange(argsArray);
+                return method;
             }
-            else if (methods.Count > 1)
+
+            if (candidates.Count > 1)
             {
-                throw new AmbiguousMatchException("Multiple methods found with the same command and arguments: " + command + "\n" + 
-                    string.Join("\n", methods.Select(m => m.Name + " - " + m.GetParameters().Length + " parameters")));
+                throw new AmbiguousMatchException("Multiple methods found with the same command and arguments: " + command + "\n" +
+                    string.Join("\n", candidates.Select(c => c.Method.Name + " - " + c.Method.GetParameters().Length + " parameters")));
             }
+
             return null;
         }
 
-        private bool IsValidMethod(MethodInfo method, string command)
+        private static bool IsPlaceholder(string segment)
         {
-            var attributes = method.GetCustomAttributes(typeof(InlineCommandAttribute), false);
-            string[] incomingCommandParts = command.Split('/');
+            return segment.Length > 1 && segment[0] == '{' && segment[segment.Length - 1] == '}';
+        }
+
+        private static string PlaceholderName(string segment)
+        {
+            return segment.Trim('{', '}');
+        }
+
+        private bool TryMatchMethod(MethodInfo method, string command, out List<object> args)
+        {
+            args = new List<object>();
+
+            var attributes = method.GetCustomAttributes(typeof(InlineCommandAttribute), inherit: false);
+            if (attributes.Length == 0)
+            {
+                return false;
+            }
+
+            var incomingCommandParts = command.Split('/');
+            var methodParameters = method.GetParameters();
 
             foreach (var attribute in attributes)
             {
-                if (!(attribute is InlineCommandAttribute botAttribute) // Skip if the attribute is not of type InlineCommandAttribute
-                    || (method.GetParameters().Length == 0 && botAttribute.Command != command)) // Skip methods without parameters if the command does not match
+                if (!(attribute is InlineCommandAttribute botAttribute))
                 {
-                    continue; 
+                    continue;
                 }
 
-                string[] controllerCommandParts = botAttribute.Command.Split('/');
+                var controllerCommandParts = botAttribute.Command.Split('/');
+
+                // Exact match shortcut for methods without parameters
+                if (methodParameters.Length == 0)
+                {
+                    if (string.Equals(botAttribute.Command, command, StringComparison.Ordinal))
+                    {
+                        return true;
+                    }
+                    continue;
+                }
+
                 if (controllerCommandParts.Length != incomingCommandParts.Length)
                 {
                     continue;
                 }
 
+                var tempArgs = new List<object>(incomingCommandParts.Length);
                 bool match = true;
+
                 for (int i = 0; i < controllerCommandParts.Length; i++)
                 {
-                    if (controllerCommandParts[i] != incomingCommandParts[i]
-                        && !controllerCommandParts[i].StartsWith('{')
-                        && !controllerCommandParts[i].EndsWith('}'))
-                    {
-                        match = false;
-                        break;
-                    }
+                    var controllerPart = controllerCommandParts[i];
+                    var incomingPart = incomingCommandParts[i];
 
-                    if (controllerCommandParts[i].StartsWith('{') && controllerCommandParts[i].EndsWith('}'))
+                    if (IsPlaceholder(controllerPart))
                     {
-                        var parameter = method.GetParameters().FirstOrDefault(p => p.Name == controllerCommandParts[i].Trim('{', '}'));
+                        var name = PlaceholderName(controllerPart);
+                        var parameter = methodParameters.FirstOrDefault(p => p.Name == name);
                         if (parameter != null)
                         {
-                            if (!TryConvertToType(incomingCommandParts[i], parameter.ParameterType))
+                            if (!TryConvertToType(incomingPart, parameter.ParameterType))
                             {
-                                match = false;  // If type conversion fails, break the match
+                                match = false;
                                 break;
                             }
                         }
-                        _args.Add(incomingCommandParts[i]);
+                        tempArgs.Add(incomingPart);
+                    }
+                    else if (!string.Equals(controllerPart, incomingPart, StringComparison.Ordinal))
+                    {
+                        match = false;
+                        break;
                     }
                 }
 
                 if (match)
                 {
+                    args = tempArgs;
                     return true;
                 }
             }
+
             return false;
         }
 
