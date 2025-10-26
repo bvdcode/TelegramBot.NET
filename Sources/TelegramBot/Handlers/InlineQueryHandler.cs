@@ -72,7 +72,9 @@ namespace TelegramBot.Handlers
         {
             args = new List<object>();
 
-            var attributes = method.GetCustomAttributes(typeof(InlineCommandAttribute), inherit: false);
+            var attributes = method.GetCustomAttributes(typeof(InlineCommandAttribute), inherit: false)
+                .OfType<InlineCommandAttribute>()
+                .ToArray();
             if (attributes.Length == 0)
             {
                 return false;
@@ -81,60 +83,25 @@ namespace TelegramBot.Handlers
             var incomingCommandParts = command.Split('/');
             var methodParameters = method.GetParameters();
 
-            foreach (var attribute in attributes)
+            // Fast path: parameterless method with an exact attribute command
+            if (methodParameters.Length == 0)
             {
-                if (!(attribute is InlineCommandAttribute botAttribute))
+                if (attributes.Any(a => string.Equals(a.Command, command, StringComparison.Ordinal)))
                 {
-                    continue;
+                    return true;
                 }
+                return false;
+            }
 
+            foreach (var botAttribute in attributes)
+            {
                 var controllerCommandParts = botAttribute.Command.Split('/');
-
-                // Exact match shortcut for methods without parameters
-                if (methodParameters.Length == 0)
-                {
-                    if (string.Equals(botAttribute.Command, command, StringComparison.Ordinal))
-                    {
-                        return true;
-                    }
-                    continue;
-                }
-
                 if (controllerCommandParts.Length != incomingCommandParts.Length)
                 {
                     continue;
                 }
 
-                var tempArgs = new List<object>(incomingCommandParts.Length);
-                bool match = true;
-
-                for (int i = 0; i < controllerCommandParts.Length; i++)
-                {
-                    var controllerPart = controllerCommandParts[i];
-                    var incomingPart = incomingCommandParts[i];
-
-                    if (IsPlaceholder(controllerPart))
-                    {
-                        var name = PlaceholderName(controllerPart);
-                        var parameter = methodParameters.FirstOrDefault(p => p.Name == name);
-                        if (parameter != null)
-                        {
-                            if (!TryConvertToType(incomingPart, parameter.ParameterType))
-                            {
-                                match = false;
-                                break;
-                            }
-                        }
-                        tempArgs.Add(incomingPart);
-                    }
-                    else if (!string.Equals(controllerPart, incomingPart, StringComparison.Ordinal))
-                    {
-                        match = false;
-                        break;
-                    }
-                }
-
-                if (match)
+                if (TryExtractArgsFromParts(controllerCommandParts, incomingCommandParts, methodParameters, out var tempArgs))
                 {
                     args = tempArgs;
                     return true;
@@ -142,6 +109,37 @@ namespace TelegramBot.Handlers
             }
 
             return false;
+        }
+
+        private bool TryExtractArgsFromParts(string[] controllerCommandParts, string[] incomingCommandParts, ParameterInfo[] methodParameters, out List<object> tempArgs)
+        {
+            tempArgs = new List<object>(incomingCommandParts.Length);
+
+            for (int i = 0; i < controllerCommandParts.Length; i++)
+            {
+                var controllerPart = controllerCommandParts[i];
+                var incomingPart = incomingCommandParts[i];
+
+                if (IsPlaceholder(controllerPart))
+                {
+                    var name = PlaceholderName(controllerPart);
+                    var parameter = methodParameters.FirstOrDefault(p => p.Name == name);
+                    if (parameter != null)
+                    {
+                        if (!TryConvertToType(incomingPart, parameter.ParameterType))
+                        {
+                            return false;
+                        }
+                    }
+                    tempArgs.Add(incomingPart);
+                }
+                else if (!string.Equals(controllerPart, incomingPart, StringComparison.Ordinal))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private bool TryConvertToType(string value, Type targetType)
