@@ -35,7 +35,7 @@ namespace TelegramBot.ConsoleTest
                         .RegisterCommand("/receipt", "показывает чек");
                 }, "ru")
                 .AddDbContext<AppDbContext>(x => x.UseSqlite("Data Source=app.db"))
-                .UseAuthorizationHandler<AuthorizationHandler>();
+                .AddAuthorizationHandler<AuthorizationHandler>();
 
             var app = builder.Build();
             app.Run();

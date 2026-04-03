@@ -59,9 +59,9 @@ namespace TelegramBot.Extensions
         /// <typeparam name="THandler">The type of the authorization handler.</typeparam>
         /// <param name="services">The service collection.</param>
         /// <returns>The modified service collection.</returns>
-        public static IServiceCollection UseAuthorizationHandler<THandler>(this IServiceCollection services) where THandler : class, IBotAuthorizationHandler
+        public static IServiceCollection AddAuthorizationHandler<THandler>(this IServiceCollection services) where THandler : class, IBotAuthorizationHandler
         {
-            return services.AddSingleton<IBotAuthorizationHandler, THandler>();
+            return services.AddScoped<IBotAuthorizationHandler, THandler>();
         }
 
         /// <summary>
