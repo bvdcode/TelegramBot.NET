@@ -175,6 +175,15 @@ namespace TelegramBot.Controllers
             return new FileResult(stream, fileName, disposeStream);
         }
 
+        public IActionResult FileId(string fileId)
+        {
+            if (string.IsNullOrWhiteSpace(fileId))
+            {
+                throw new ArgumentNullException(nameof(fileId));
+            }
+            return new FileResult(InputFile.FromFileId(fileId));
+        }
+
         /// <summary>
         /// Sends an image to the sender.
         /// </summary>

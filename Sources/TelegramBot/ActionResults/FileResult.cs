@@ -15,6 +15,7 @@ namespace TelegramBot.ActionResults
         private bool _disposed;
         private readonly string _fileName;
         private readonly Stream _fileStream;
+        private readonly InputFileId? _inputFile;
         private readonly bool _disposeStream = true;
 
         /// <summary>
@@ -41,6 +42,19 @@ namespace TelegramBot.ActionResults
         }
 
         /// <summary>
+        /// Initializes a new instance of the FileResult class using the specified input file identifier.
+        /// </summary>
+        /// <remarks>The file name is initialized to an empty string, and the file stream is set to a null
+        /// stream.</remarks>
+        /// <param name="inputFileId">The identifier of the input file to be processed. This parameter cannot be null.</param>
+        public FileResult(InputFileId inputFileId)
+        {
+            _inputFile = inputFileId;
+            _fileName = string.Empty;
+            _fileStream = Stream.Null;
+        }
+
+        /// <summary>
         /// Disposes the file stream if it is applicable.
         /// </summary>
         public void Dispose()
@@ -59,7 +73,15 @@ namespace TelegramBot.ActionResults
         /// <returns>The task representing the result of the action.</returns>
         public Task ExecuteResultAsync(ActionContext context)
         {
-            InputFile file = InputFile.FromStream(_fileStream, _fileName);
+            InputFile file;
+            if (_inputFile != null)
+            {
+                file = _inputFile;
+            }
+            else
+            {
+                file = InputFile.FromStream(_fileStream, _fileName);
+            }
             return context.Bot.SendDocument(context.ChatId, document: file);
         }
     }
