@@ -6,13 +6,13 @@ namespace TelegramBot.ConsoleTest.Controllers
 {
     internal class QueryController : BotControllerBase
     {
-        [TextQuery(pattern: ".+hello.+")]
+        [TextRegex(".+hello.+")]
         public IActionResult HandleHelloAsync()
         {
             return Text("Hello!");
         }
 
-        [TextQuery(pattern: "bye")]
+        [Text("bye")]
         public IActionResult HandleByeAsync()
         {
             return Text("Goodbye!", removeReplyKeyboard: true);

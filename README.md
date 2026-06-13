@@ -114,6 +114,28 @@ public async Task<IActionResult> HandleStartAsync()
 }
 ```
 
+- Handle plain text messages with exact, regex, or fallback routes:
+
+```CSharp
+[Text("yes", "y")]
+public IActionResult HandleYes()
+{
+    return Text("Accepted.");
+}
+
+[TextRegex(@"\d{6}")]
+public IActionResult HandleCode(string code)
+{
+    return Text($"Received code: {code}");
+}
+
+[TextFallback]
+public IActionResult HandleTextFallback(string text)
+{
+    return Text("I did not understand this message.");
+}
+```
+
 <p align="right"><a href="#readme-top">back to top</a></p>
 
 ## Roadmap
