@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <Authors>Vadim Belov</Authors>
     <Company>bvdcode</Company>
@@ -25,6 +26,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="EasyExtensions.Analyzers" Version="3.0.75" PrivateAssets="All" />
     <None Include="icon.png" Pack="true" PackagePath="\" />
     <PackageReference Include="Telegram.Bot" Version="22.9.6" />
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />

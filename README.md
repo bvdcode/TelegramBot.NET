@@ -85,6 +85,14 @@ info: TelegramBot.ConsoleTest.Controllers.HomeController[0]
 
 ## Features
 
+- Inspect updates before routing with a scoped `IBotUpdateFilter`:
+
+```CSharp
+builder.Services.AddScoped<IBotUpdateFilter, AccountAccessFilter>();
+```
+
+Implement `FilterAsync(Update, CancellationToken)` and return `null` to continue processing, or an `IActionResult` to respond and stop. Filters run in registration order before command lookup and `[Authorize]`, including unknown commands and callback buttons. Each update has its own dependency-injection scope, shared with its authorization handler and controller.
+
 - Dependency Injection - use `Services` property of `BotBuilder` to add services:
 
 ```CSharp

@@ -96,25 +96,49 @@ namespace TelegramBot.Services
             return Task.CompletedTask;
         }
 
-        private async Task UpdateHandler(ITelegramBotClient client, Update update, CancellationToken token)
+        internal async Task UpdateHandler(ITelegramBotClient client, Update update, CancellationToken token)
         {
+            if (!update.TryGetUser(out User user))
+            {
+                return;
+            }
+
+            await using AsyncServiceScope scope = _serviceProvider.CreateAsyncScope();
+            IServiceProvider services = scope.ServiceProvider;
+            foreach (IBotUpdateFilter filter in services.GetServices<IBotUpdateFilter>())
+            {
+                token.ThrowIfCancellationRequested();
+                IActionResult? result = await filter.FilterAsync(update, token);
+                if (result is not null)
+                {
+                    if (update.CallbackQuery is not null)
+                    {
+                        await client.AnswerCallbackQuery(update.CallbackQuery.Id, cancellationToken: token);
+                    }
+
+                    await ExecuteResultAsync(result, user.Id);
+                    await DisposeAsync(result);
+                    return;
+                }
+            }
+
             if (update.Message != null && !string.IsNullOrWhiteSpace(update.Message.Text) && !update.Message.Text.StartsWith('/'))
             {
                 _logger.LogInformation("Received text message: {Text}.", update.Message.Text);
                 var handler = new TextMessageHandler(_methods, update);
-                await HandleRequestAsync(handler, update);
+                await HandleRequestAsync(handler, update, services);
             }
             else if (update.Message != null && !string.IsNullOrWhiteSpace(update.Message.Text) && update.Message.Text.StartsWith('/'))
             {
                 _logger.LogInformation("Received text command: {Text}.", update.Message.Text);
                 var handler = new TextCommandHandler(_methods, update);
-                await HandleRequestAsync(handler, update);
+                await HandleRequestAsync(handler, update, services);
             }
             else if (update.CallbackQuery != null && update.CallbackQuery.Data != null)
             {
                 _logger.LogInformation("Received inline query: {Data}.", update.CallbackQuery.Data);
                 var handler = new InlineQueryHandler(_methods, update);
-                await HandleRequestAsync(handler, update);
+                await HandleRequestAsync(handler, update, services);
             }
             else
             {
@@ -122,7 +146,7 @@ namespace TelegramBot.Services
             }
         }
 
-        private async Task HandleRequestAsync(ITelegramUpdateHandler handler, Update update)
+        private async Task HandleRequestAsync(ITelegramUpdateHandler handler, Update update, IServiceProvider services)
         {
             bool hasUser = update.TryGetUser(out User user);
             if (!hasUser)
@@ -136,17 +160,17 @@ namespace TelegramBot.Services
                 _logger.LogWarning("Method not found for message: {Text}.", update.Message?.Text);
                 return;
             }
-            bool isAuthorized = await AuthorizeAsync(method, user);
+            bool isAuthorized = await AuthorizeAsync(method, user, services);
             if (!isAuthorized)
             {
                 return;
             }
             CheckMethodMatching(method, args);
-            BotControllerBase controller = (BotControllerBase)ActivatorUtilities.CreateInstance(_serviceProvider, method.DeclaringType!);
+            BotControllerBase controller = (BotControllerBase)ActivatorUtilities.CreateInstance(services, method.DeclaringType!);
             controller.Update = update;
             controller.User = user;
             controller.Client = _client;
-            if (_serviceProvider.GetService<IKeyValueProvider>() is IKeyValueProvider keyValueProvider)
+            if (services.GetService<IKeyValueProvider>() is IKeyValueProvider keyValueProvider)
             {
                 controller.KeyValueProvider = keyValueProvider;
             }
@@ -168,12 +192,12 @@ namespace TelegramBot.Services
             }
         }
 
-        private async Task<bool> AuthorizeAsync(MethodInfo method, User user)
+        private async Task<bool> AuthorizeAsync(MethodInfo method, User user, IServiceProvider services)
         {
             if (method.GetCustomAttribute<AuthorizeAttribute>() != null
                 || method.DeclaringType?.GetCustomAttribute<AuthorizeAttribute>() != null)
             {
-                if (_serviceProvider.GetService<IBotAuthorizationHandler>() is IBotAuthorizationHandler authorizationHandler)
+                if (services.GetService<IBotAuthorizationHandler>() is IBotAuthorizationHandler authorizationHandler)
                 {
                     if (!authorizationHandler.Authorize(user))
                     {
